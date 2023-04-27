@@ -3,7 +3,7 @@ import time
 import hashlib
 import json
 
-from avoidable_api_wrapper import PodcastIndexConfig, PodcastIndexAPI
+from dev_tools.api_dev_tools import PodcastIndexConfig, PodcastIndexAPI
 
 config_instance = PodcastIndexConfig()
 api_key = config_instance.api_key
