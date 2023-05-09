@@ -2,13 +2,20 @@ import os
 import datetime
 from dotenv import load_dotenv
 import json
-import podcastindex
 from bs4 import BeautifulSoup
 import textwrap
 from rich import print as rprint
 from rich.console import Console
 from dev_tools.api_dev_tools import PodcastIndexConfig, PodcastIndexAPI
 
+# TODO Everything needs reworking if we're passing this as a dict
+# TODO It's not worth it right now
+
+tracked_pods3 = {
+        "podcasts being tracked": 
+        [
+    ]
+}
 tracked_pods2 = []
 tracked_pods = [
 
@@ -96,8 +103,64 @@ def convert_unix_time(time_unix, format):
 def search_by_title_menu(tracked_pods):
     config_instance = PodcastIndexConfig()
     api_instance = PodcastIndexAPI(config_instance.config)
-    # TO FINISH - building using dummy_search_by_title_menu
-    return tracked_pods
+    
+    displayed = 0
+    while True:
+        usr_search = input("\nEnter a search term (or 'q' to return to main menu): ")
+        if usr_search == 'q':
+            break
+        
+        # file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/pi_output_cache/sample_api_responses/001_search.json"
+        # with open(file_path, 'r') as json_file:
+        #     dummy_api_response = json.load(json_file)
+        #     #dummy_api_response = []
+
+        # print(f"\nDUMMY DATA | SEARCH TERM NOT USED - search term input was: {usr_search}")
+
+        api_response = api_instance.index.search(usr_search)
+
+        total_search_results = len(api_response['feeds'])
+        if total_search_results == 0:
+            print("\n>>> No results for that search. PLEASE TRY AGAIN!\n\n")
+            continue
+    
+        idxed_search_results = list(enumerate(api_response["feeds"], 1))
+
+        valid_idx_nums = list(range(1, total_search_results + 1))
+        valid_idx_strs = [str(num) for num in valid_idx_nums]
+        # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
+        
+        if displayed == 0:
+            for idx, episode in idxed_search_results:
+                title = episode["title"]
+                shortened_title = title if len(title) <= 30 else title[:30] + "..."
+                formatted_title = f"{shortened_title:<33}"
+            
+                most_recent_ep = convert_unix_time(episode['newestItemPubdate'], 'date')
+            
+                formatted_link = f'\033]8;;{episode["link"]}\007{episode["link"]}\033]8;;\007'
+            
+                print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {episode['language']}")
+            displayed += 1
+       
+        while True:
+            print(f"\n--------SEARCH OPTIONS-------\nEnter 1 - {total_search_results} to track a podcast\nEnter 'r' to (r)etry a new search term\nEnter 'q' to (q)uit search and return to the main menu")
+            usr_choice = input(": ")
+            if usr_choice in valid_idx_strs:
+                tracked_pods = add_podcast_menu(usr_choice, idxed_search_results, tracked_pods)
+                return tracked_pods
+            elif usr_choice == 'q':
+                print("\nReturning to main menu...\n")
+                return tracked_pods
+            elif usr_choice == 'r':
+                break
+            else:
+                print("\n>>> INVALID CHOICE\nPlease choose again")
+
+        if usr_choice == 'r':
+            continue
+
+        return tracked_pods
 
 def dummy_add_latest_episodes(feed_title, feed_id):
     
@@ -153,6 +216,9 @@ def dummy_add_latest_episodes(feed_title, feed_id):
 
 
     # save episodes
+        print("Download episode mp3 options to follow")
+        print()
+
     # print("To save any episodes now, enter the index number.")
     # print("Enter x to save one episode")
     # print("Enter idx1, idx2, idx3 etc. to save multiple episodes")
@@ -168,6 +234,7 @@ def dummy_add_latest_episodes(feed_title, feed_id):
     return recent_episode_list
 
 def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods):
+    print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
     print("\n--------ADDING POD MENU--------")
     for episode in idxed_search_results:
         if episode[0] == int(usr_choice):
@@ -191,6 +258,8 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods):
             print(f"Crawl errors: {episode[1]['crawlErrors']}")
             print(f"Parse errors: {episode[1]['parseErrors']}")
             
+            print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
+
             confirm = input("\nIf you want to track this podcast, enter 'yes' to confirm add: ")
             if confirm != 'yes':
                 print('Add podcast cancelled. Returning to main menu... (maybe one day returns to search results?)')
@@ -200,9 +269,13 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods):
             feed_id = episode[1]['id']
             
             # print(f"The feed id is {feed_id}")
-            dummy_add_latest_episodes(feed_title, feed_id) 
+            recent_episodes = dummy_add_latest_episodes(feed_title, feed_id) 
             
-            tracked_pods.append(episode[1])
+            print(f"This is {tracked_pods}")
+            print(f"This is it's type {type(tracked_pods)}")
+            
+
+            tracked_pods.append(recent_episodes)
             # add {podsidian: [{tracked_time: time}]} - this format allows for adding more metadata later if I want
             print("-----NEW TRACKED PODS-----")
             for pod in tracked_pods:
@@ -212,6 +285,7 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods):
             return tracked_pods    
 
 def dummy_search_by_title_menu(tracked_pods):
+    print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
     displayed = 0
     while True:
         usr_search = input("\nEnter a search term (or 'q' to return to main menu): ")
@@ -250,7 +324,7 @@ def dummy_search_by_title_menu(tracked_pods):
             displayed += 1
        
         while True:
-            print(f"\n--------SEARCH OPTIONS-------\nEnter 1 - {total_search_results} to track a episode\nEnter 'r' to (r)etry a new search term\nEnter 'q' to (q)uit search and return to the main menu")
+            print(f"\n--------SEARCH OPTIONS-------\nEnter 1 - {total_search_results} to track a podcast\nEnter 'r' to (r)etry a new search term\nEnter 'q' to (q)uit search and return to the main menu")
             usr_choice = input(": ")
             if usr_choice in valid_idx_strs:
                 tracked_pods = add_podcast_menu(usr_choice, idxed_search_results, tracked_pods)
@@ -273,6 +347,7 @@ def search_and_add_menu(tracked_pods):
         usr_option = input("\n-----SEARCH AND ADD MENU-----\n1. Search by title & author\n2. Other search\nq. Return to main menu\n: ")
         if usr_option == '1':
             tracked_pods = dummy_search_by_title_menu(tracked_pods)
+            # tracked_pods = search_by_title_menu(tracked_pods)
             return tracked_pods    
         elif usr_option == '2':
             print("Not built yet")
@@ -296,6 +371,6 @@ def main_menu(tracked_pods):
             (f">>> INVALID CHOICE: Please pick again from: {', '.join(str(x) for x in valid_choices)}")
     print("---END---")  
 
-main_menu(tracked_pods)
+main_menu(tracked_pods2)
 
 
