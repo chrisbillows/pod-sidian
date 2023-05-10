@@ -75,10 +75,7 @@ def view_and_delete_menu(tracked_pods_full):
             break
 
         idx_tracked_pods = list(enumerate(tracked_pods, 1))
-        # valid_idx_nums = list(range(1, total_tracked_pods + 1))
-        # valid_idx_strs = [str(num) for num in valid_idx_nums]
-        # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
-        
+
         valid_idx_nums = list(range(1, total_tracked_pods + 1))
         valid_idx_strs = [str(num) for num in valid_idx_nums]
 
@@ -86,11 +83,6 @@ def view_and_delete_menu(tracked_pods_full):
             valid_idx_joined = ', '.join(valid_idx_strs[:-1]) + ' or ' + valid_idx_strs[-1]
         else:
             valid_idx_joined = f"{valid_idx_strs[0]} - {valid_idx_strs[-1]}"
-
-        # print(valid_idx_strs)
-        # for idx in valid_idx_strs:
-        #     print(f"{idx} - type {type(idx)}")
-
 
         if displayed == 0:
             print("-----VIEWING TRACKED PODCASTS-----\n")
@@ -100,10 +92,14 @@ def view_and_delete_menu(tracked_pods_full):
                 print(f"Link: {pod['link']}")
                 # f"Tracked from: {pod['tracked_from']}",
                 print("Tracked episodes: ")
-                for podcast in pod['episodes']:
-                    print(f"{podcast['datePublishedPretty']} - EP: {podcast['podcast']} - {podcast['title']}")
+                
+                if 'episodes' in pod:  # Check if the 'episodes' key exists, temp fix for non-production - when created by the app, episodes will always exist.
+                    for episode in pod['episodes']:
+                        print(f"{episode['datePublishedPretty']} | EP: {episode['episode']} - {episode['title']}")
+                else:
+                    print("No episodes found.")
                 print()
-                       
+                                       
         displayed = 1
         print("Enter 'q' to return to main menu.")
         print(f"Or, to delete a podcast to delete select {valid_idx_joined}: ")
