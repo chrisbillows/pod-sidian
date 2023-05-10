@@ -1,3 +1,4 @@
+from ast import Dict
 import os
 import datetime
 from dotenv import load_dotenv
@@ -11,81 +12,119 @@ from dev_tools.api_dev_tools import PodcastIndexConfig, PodcastIndexAPI
 # TODO Everything needs reworking if we're passing this as a dict
 # TODO It's not worth it right now
 
-tracked_pods3 = {
-        "podcasts being tracked": 
-        [
-    ]
-}
-tracked_pods2 = []
-tracked_pods = [
-
-{'title': 'The Rest is History','ep_dloads': 3, 'tracked_from': '11/04/23', 
- 'link': 'https://shows.acast.com/the-rest-is-history-episode', 'last_ep': '23/04/23 - "Atlantis"'},
-
-{'title': 'The Rest is Politics','ep_dloads': 28, 'tracked_from': '11/10/22', 
-'link': 'https://shows.acast.com/the-rest-is-poltics-episode', 
- 'last_ep': '23/04/23 - "Macron, Xi Jinping and striking teachers"'}
-]
-
-def delete_podcast_menu(usr_choice, idx_tracked_pods):
+def delete_podcast_menu(usr_choice, idx_tracked_pods, tracked_pods_full):
     # print(f"User selected: {usr_choice}")
     # print(f"User selection type is {type(usr_choice)}")
     # usr_int = int(usr_choice)
     # print(f"Choice as an int is {usr_int}")
     # print(f"Choice as an int is {type(usr_int)}")
-    # print(f"Index type is {type(my_tracked_podcasts[0][0])}")
-     
-    for episode in idx_tracked_pods:
-        # only valid values should reach here
-        if episode[0] == int(usr_choice):
-            print(f"\nAre you sure you want to delete {episode[1]['title'].upper()}?")
+    # print(f"Index type is {type(idx_tracked_pods[0][0])}")
+  
+    for idx, podcast in idx_tracked_pods:
+        if idx == int(usr_choice):
+            delete_title = podcast['title']
+
+    # print("Deletion is: ")
+    # print(delete_title)
+
+    for pod in tracked_pods_full['podcasts being tracked']:
+        if pod['title'] == delete_title:
+            print(f"\nAre you sure you want to delete {pod['title'].upper()}?")
             confirm = input("Enter 'yes' to confirm: ")
             if confirm != 'yes':
                 print('Deletion cancelled. Returning to main menu...')
-                tracked_pods = [item for index, item in idx_tracked_pods]
-                return tracked_pods 
+                return tracked_pods_full 
             
-            idx_tracked_pods.remove(episode)
-            print(f"\nDELETED {episode[1]['title']}\n")
-            
-            # remove indexes
-            tracked_pods = [item for index, item in idx_tracked_pods]
-            print("\n\nYour remaining tracked podcasts are:\n")
-            print(tracked_pods)
-    print("Returning to main menu...")
-    return tracked_pods
+            tracked_pods_full['podcasts being tracked'].remove(pod)
+            print(f"\nDELETED {delete_title}\n")
+        
+    # tracked_pods = [item for index, item in idx_tracked_pods]
+    print("\n\nYour remaining tracked podcasts are:\n")
+    print([pod['title'] for pod in tracked_pods_full['podcasts being tracked']])
+    print("\nReturning to main menu...\n")
+    return tracked_pods_full
 
-def view_and_delete_menu(tracked_pods):
+def view_and_delete_menu(tracked_pods_full):
+
+    #------ TESTING ------
+    # tracked_pods = tracked_pods_full['podcasts being tracked'] # tracked_pods is a list
+    # total_tracked_pods = len(tracked_pods)
+    # # idx_tracked_pods = list(enumerate(tracked_pods, 1))  #! this feels risky with our MASTER DATA
+    # valid_idx_nums = list(range(1, total_tracked_pods + 1))
+    # valid_idx_strs = [str(num) for num in valid_idx_nums]
+    # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
+    # for idx, podcast in list(enumerate(tracked_pods, 1)):
+    #     print(f"{idx}. {podcast['title'].upper()}",
+    #     f"{24 * '-'}",
+    #     f"Link: {podcast['link']}","",
+    #     #f"Episodes downloaded: {pod['ep_dloads']}",
+    #     # f"Tracked from: {pod['tracked_from']}",
+    #     #f"Lastest episode: {pod['last_ep']}",
+    #     sep='\n')
+    #     for episode in podcast['episodes']:
+    #         print(f"{episode['datePublishedPretty']} - EP: {episode['episode']} - {episode['title']}")
+    #         print()
+    #------   ------ ------
+
     displayed = 0
     while True:
+        tracked_pods = tracked_pods_full['podcasts being tracked'] # tracked_pods is a list
         total_tracked_pods = len(tracked_pods)
         if total_tracked_pods == 0:
             print("\n>>> You don't have any saved podcasts!\n\nReturning to main menu...\n")
             break
 
         idx_tracked_pods = list(enumerate(tracked_pods, 1))
+        # valid_idx_nums = list(range(1, total_tracked_pods + 1))
+        # valid_idx_strs = [str(num) for num in valid_idx_nums]
+        # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
+        
         valid_idx_nums = list(range(1, total_tracked_pods + 1))
         valid_idx_strs = [str(num) for num in valid_idx_nums]
-        valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
+
+        if total_tracked_pods <= 5:
+            valid_idx_joined = ', '.join(valid_idx_strs[:-1]) + ' or ' + valid_idx_strs[-1]
+        else:
+            valid_idx_joined = f"{valid_idx_strs[0]} - {valid_idx_strs[-1]}"
+
+        # print(valid_idx_strs)
+        # for idx in valid_idx_strs:
+        #     print(f"{idx} - type {type(idx)}")
+
 
         if displayed == 0:
-            print("-----VIEW AND DELETE-----\n")
+            print("-----VIEWING TRACKED PODCASTS-----\n")
             for idx, pod in idx_tracked_pods:
-                print(f"{idx}. {pod['title'].upper()}",
-                f"{24 * '-'}",
-                f"Episodes downloaded: {pod['ep_dloads']}",
-                f"Tracked from: {pod['tracked_from']}",
-                f"Lastest episode: {pod['last_ep']}",
-                f"Link: {pod['link']}","",
-                sep='\n')
-       
+                print(f"{idx}. {pod['title'].upper()}")
+                print(f"{24 * '-'}")
+                print(f"Link: {pod['link']}")
+                # f"Tracked from: {pod['tracked_from']}",
+                print("Tracked episodes: ")
+                for episode in pod['episodes']:
+                    print(f"{episode['datePublishedPretty']} - EP: {episode['episode']} - {episode['title']}")
+                print()
+                       
         displayed = 1
-        print(f"Please select episode for deletion: {valid_idx_joined}\n(Or 'q' to return to main menu)")
+        print("Enter 'q' to return to main menu.")
+        print(f"Or, to delete a podcast to delete select {valid_idx_joined}: ")
         usr_choice = input(": ")
-    
+        
+        # if usr_choice == 'q':
+        #     print("\nReturning to main menu...\n")
+        #     return tracked_pods   
+        # if usr_choice == 'd':
+        #     usr_select = input(f"")
+        #     if usr_select in valid_idx_strs:
+        #         tracked_pods = delete_podcast_menu(usr_select, idx_tracked_pods)
+        #         return tracked_pods
+        #     else:
+        #         print("\n>>> INVALID CHOICE\n")
+        # else:
+        #     print("\n>>> INVALID CHOICE\n")          
+            
         if usr_choice in valid_idx_strs:
-            tracked_pods = delete_podcast_menu(usr_choice, idx_tracked_pods)
-            return tracked_pods
+            tracked_pods_full = delete_podcast_menu(usr_choice, idx_tracked_pods, tracked_pods_full)
+            return tracked_pods_full
         elif usr_choice == 'q':
             print("\nReturning to main menu...\n")
             return tracked_pods
@@ -355,15 +394,15 @@ def search_and_add_menu(tracked_pods):
         else:
             break
 
-def main_menu(tracked_pods):
+def main_menu(tracked_pods_full: Dict):
     while True:
         valid_choices = ['1', '2', 'q']
         print("----------MAIN MENU----------\n1. View and delete tracked podcasts\n2. Search and add a new episode\nq. Quit the program")
         usr_option = input(": ")
         if usr_option == '1':
-            tracked_pods = view_and_delete_menu(tracked_pods)
+            tracked_pods = view_and_delete_menu(tracked_pods_full)
         elif usr_option == '2':
-            tracked_pods = search_and_add_menu(tracked_pods)
+            tracked_pods = search_and_add_menu(tracked_pods_full)
         elif usr_option == 'q':
             print("Thank you for using the programme. Goodbye!")
             break
@@ -371,6 +410,28 @@ def main_menu(tracked_pods):
             (f">>> INVALID CHOICE: Please pick again from: {', '.join(str(x) for x in valid_choices)}")
     print("---END---")  
 
-main_menu(tracked_pods2)
+
+# tracked_pods3 = {
+#         "podcasts being tracked": 
+#         [
+#     ]
+# }
+# tracked_pods2 = []
+# tracked_pods = [
+# {'title': 'The Rest is History','ep_dloads': 3, 'tracked_from': '11/04/23', 
+#  'link': 'https://shows.acast.com/the-rest-is-history-episode', 'last_ep': '23/04/23 - "Atlantis"'},
+
+# {'title': 'The Rest is Politics','ep_dloads': 28, 'tracked_from': '11/10/22', 
+# 'link': 'https://shows.acast.com/the-rest-is-poltics-episode', 
+#  'last_ep': '23/04/23 - "Macron, Xi Jinping and striking teachers"'}
+# ]
+
+tracked_pods_json = 'tracked_pods_jsons/002_pods_from_json.json'
+
+with open(tracked_pods_json, 'r') as f:
+    json_data = f.read()
+    tracked_pods_full = json.loads(json_data)
+
+main_menu(tracked_pods_full)
 
 
