@@ -59,10 +59,10 @@ def view_and_delete_menu(tracked_pods_full):
     #     f"Link: {podcast['link']}","",
     #     #f"Episodes downloaded: {pod['ep_dloads']}",
     #     # f"Tracked from: {pod['tracked_from']}",
-    #     #f"Lastest episode: {pod['last_ep']}",
+    #     #f"Lastest podcast: {pod['last_ep']}",
     #     sep='\n')
-    #     for episode in podcast['episodes']:
-    #         print(f"{episode['datePublishedPretty']} - EP: {episode['episode']} - {episode['title']}")
+    #     for podcast in podcast['episodes']:
+    #         print(f"{podcast['datePublishedPretty']} - EP: {podcast['podcast']} - {podcast['title']}")
     #         print()
     #------   ------ ------
 
@@ -100,8 +100,8 @@ def view_and_delete_menu(tracked_pods_full):
                 print(f"Link: {pod['link']}")
                 # f"Tracked from: {pod['tracked_from']}",
                 print("Tracked episodes: ")
-                for episode in pod['episodes']:
-                    print(f"{episode['datePublishedPretty']} - EP: {episode['episode']} - {episode['title']}")
+                for podcast in pod['episodes']:
+                    print(f"{podcast['datePublishedPretty']} - EP: {podcast['podcast']} - {podcast['title']}")
                 print()
                        
         displayed = 1
@@ -170,16 +170,16 @@ def search_by_title_menu(tracked_pods):
         # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
         
         if displayed == 0:
-            for idx, episode in idxed_search_results:
-                title = episode["title"]
+            for idx, podcast in idxed_search_results:
+                title = podcast["title"]
                 shortened_title = title if len(title) <= 30 else title[:30] + "..."
                 formatted_title = f"{shortened_title:<33}"
             
-                most_recent_ep = convert_unix_time(episode['newestItemPubdate'], 'date')
+                most_recent_ep = convert_unix_time(podcast['newestItemPubdate'], 'date')
             
-                formatted_link = f'\033]8;;{episode["link"]}\007{episode["link"]}\033]8;;\007'
+                formatted_link = f'\033]8;;{podcast["link"]}\007{podcast["link"]}\033]8;;\007'
             
-                print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {episode['language']}")
+                print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {podcast['language']}")
             displayed += 1
        
         while True:
@@ -218,16 +218,16 @@ def dummy_add_latest_episodes(feed_title, feed_id):
     print(feed_title.upper())
     print("-------------------\n")
 
-    for episode in recent_episode_list:
-        ep_num = episode['episode']
-        ep_title = episode['title']
-        ep_date = episode['datePublishedPretty']
-        ep_duration_seconds = episode['duration']
+    for podcast in recent_episode_list:
+        ep_num = podcast['podcast']
+        ep_title = podcast['title']
+        ep_date = podcast['datePublishedPretty']
+        ep_duration_seconds = podcast['duration']
 
         # REMOVE HTML     
         #! Likely issues. Need to experiment with more feeds / live with some uglyiness
         #! WILL BE BETTER TO TEST WITH FULL DESCRIPTION ENDPOINTS
-        description = episode["description"]
+        description = podcast["description"]
         soup = BeautifulSoup(description, "html.parser")
         text = soup.get_text("")
         terminal_width = os.get_terminal_size().columns
@@ -235,13 +235,13 @@ def dummy_add_latest_episodes(feed_title, feed_id):
 
         # DISPLAY HTML
         #! Needs to cover all possibilities - doesn't work on Talk Python, will be worse elsewhere
-        # description = episode["description"]
+        # description = podcast["description"]
         # description = description.replace("<br/>", "\n")
         # console = Console()
                 
         # Format links as clickable
-        formatted_ep_link = f'\033]8;;{episode["link"]}\007{episode["link"]}\033]8;;\007'
-        formatted_ep_mp3 = f'\033]8;;{episode["enclosureUrl"]}\007{episode["enclosureUrl"]}\033]8;;\007'
+        formatted_ep_link = f'\033]8;;{podcast["link"]}\007{podcast["link"]}\033]8;;\007'
+        formatted_ep_mp3 = f'\033]8;;{podcast["enclosureUrl"]}\007{podcast["enclosureUrl"]}\033]8;;\007'
         
         print(f"{ep_num} - {ep_title.upper()}")
         print("--------------------------------------")
@@ -255,11 +255,11 @@ def dummy_add_latest_episodes(feed_title, feed_id):
 
 
     # save episodes
-        print("Download episode mp3 options to follow")
+        print("Download podcast mp3 options to follow")
         print()
 
     # print("To save any episodes now, enter the index number.")
-    # print("Enter x to save one episode")
+    # print("Enter x to save one podcast")
     # print("Enter idx1, idx2, idx3 etc. to save multiple episodes")
     # print("Enter idx - idx to save a range")
     # usr_choice = input(": ")
@@ -272,59 +272,55 @@ def dummy_add_latest_episodes(feed_title, feed_id):
 
     return recent_episode_list
 
-def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods):
-    print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
+def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
+    # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
     print("\n--------ADDING POD MENU--------")
-    for episode in idxed_search_results:
-        if episode[0] == int(usr_choice):
+    for podcast in idxed_search_results:
+        if podcast[0] == int(usr_choice):
             categories_to_str = lambda categories: ', '.join(f"{k} - {v}" for k, v in categories.items())
             print("Are you sure you want to add: \n")
-            print(episode[1]['title'].upper())
-            print(episode[1]['description'])
-            print(f"\nFeed_ID: {episode[1]['id']}")
-            print(f"itunes_ID: {episode[1]['itunesId']}")
-            print(f"Link: {episode[1]['link']} ")
-            print(f"RSS: {episode[1]['url']} ")
-            print(f"Episodes: {episode[1]['episodeCount']} ")
-            print(f"Language: {episode[1]['language']} ")
-            print(f"Categories: {categories_to_str(episode[1]['categories'])}")
-            print(f"\nMost recent ep:   {convert_unix_time(episode[1]['newestItemPubdate'], 'date&time')}")
-            print(f"Last update time: {convert_unix_time(episode[1]['lastUpdateTime'], 'date&time')}")
-            print(f"Last crawl time:  {convert_unix_time(episode[1]['lastCrawlTime'], 'date&time')}")
-            print(f"Last Parse time:  {convert_unix_time(episode[1]['lastParseTime'], 'date&time')}")
-            print(f"Last Good http:   {convert_unix_time(episode[1]['lastGoodHttpStatusTime'], 'date&time')}")
-            print(f"Last Update Time  {convert_unix_time(episode[1]['lastUpdateTime'], 'date&time')}")
-            print(f"Crawl errors: {episode[1]['crawlErrors']}")
-            print(f"Parse errors: {episode[1]['parseErrors']}")
+            print(podcast[1]['title'].upper())
+            print(podcast[1]['description'])
+            print(f"\nFeed_ID: {podcast[1]['id']}")
+            print(f"itunes_ID: {podcast[1]['itunesId']}")
+            print(f"Link: {podcast[1]['link']} ")
+            print(f"RSS: {podcast[1]['url']} ")
+            print(f"Episodes: {podcast[1]['episodeCount']} ")
+            print(f"Language: {podcast[1]['language']} ")
+            print(f"Categories: {categories_to_str(podcast[1]['categories'])}")
+            print(f"\nMost recent ep:   {convert_unix_time(podcast[1]['newestItemPubdate'], 'date&time')}")
+            print(f"Last update time: {convert_unix_time(podcast[1]['lastUpdateTime'], 'date&time')}")
+            print(f"Last crawl time:  {convert_unix_time(podcast[1]['lastCrawlTime'], 'date&time')}")
+            print(f"Last Parse time:  {convert_unix_time(podcast[1]['lastParseTime'], 'date&time')}")
+            print(f"Last Good http:   {convert_unix_time(podcast[1]['lastGoodHttpStatusTime'], 'date&time')}")
+            print(f"Last Update Time  {convert_unix_time(podcast[1]['lastUpdateTime'], 'date&time')}")
+            print(f"Crawl errors: {podcast[1]['crawlErrors']}")
+            print(f"Parse errors: {podcast[1]['parseErrors']}")
             
-            print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
+            # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
 
             confirm = input("\nIf you want to track this podcast, enter 'yes' to confirm add: ")
             if confirm != 'yes':
-                print('Add podcast cancelled. Returning to main menu... (maybe one day returns to search results?)')
-                return tracked_pods 
+                print('\nAdd podcast cancelled. Returning to main menu... (maybe one day returns to search results?)')
+                return tracked_pods_full
             
-            feed_title = episode[1]['title'] 
-            feed_id = episode[1]['id']
-            
+            # TODO ADD LATEST EPISODES
+            # recent_episodes = dummy_add_latest_episodes(feed_title, feed_id) 
+            # feed_title = podcast[1]['title'] 
+            # feed_id = podcast[1]['id']
             # print(f"The feed id is {feed_id}")
-            recent_episodes = dummy_add_latest_episodes(feed_title, feed_id) 
             
-            print(f"This is {tracked_pods}")
-            print(f"This is it's type {type(tracked_pods)}")
-            
-
-            tracked_pods.append(recent_episodes)
+            #TODO ADD TRACK TIME
             # add {podsidian: [{tracked_time: time}]} - this format allows for adding more metadata later if I want
+            
+            tracked_pods_full["podcasts being tracked"].append(podcast[1])
             print("-----NEW TRACKED PODS-----")
-            for pod in tracked_pods:
-                print(pod['title'])
-            print(tracked_pods)
+            print([x['title'] for x in tracked_pods_full['podcasts being tracked']])
+            
+            return tracked_pods_full    
 
-            return tracked_pods    
-
-def dummy_search_by_title_menu(tracked_pods):
-    print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
+def dummy_search_by_title_menu(tracked_pods_full):
+    # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
     displayed = 0
     while True:
         usr_search = input("\nEnter a search term (or 'q' to return to main menu): ")
@@ -350,27 +346,27 @@ def dummy_search_by_title_menu(tracked_pods):
         # valid_idx_joined = ', '.join(str(x) for x in valid_idx_nums)
         
         if displayed == 0:
-            for idx, episode in idxed_search_results:
-                title = episode["title"]
+            for idx, podcast in idxed_search_results:
+                title = podcast["title"]
                 shortened_title = title if len(title) <= 30 else title[:30] + "..."
                 formatted_title = f"{shortened_title:<33}"
             
-                most_recent_ep = convert_unix_time(episode['newestItemPubdate'], 'date')
+                most_recent_ep = convert_unix_time(podcast['newestItemPubdate'], 'date')
             
-                formatted_link = f'\033]8;;{episode["link"]}\007{episode["link"]}\033]8;;\007'
+                formatted_link = f'\033]8;;{podcast["link"]}\007{podcast["link"]}\033]8;;\007'
             
-                print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {episode['language']}")
+                print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {podcast['language']}")
             displayed += 1
        
         while True:
             print(f"\n--------SEARCH OPTIONS-------\nEnter 1 - {total_search_results} to track a podcast\nEnter 'r' to (r)etry a new search term\nEnter 'q' to (q)uit search and return to the main menu")
             usr_choice = input(": ")
             if usr_choice in valid_idx_strs:
-                tracked_pods = add_podcast_menu(usr_choice, idxed_search_results, tracked_pods)
-                return tracked_pods
+                tracked_pods_full = add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full)
+                return tracked_pods_full
             elif usr_choice == 'q':
                 print("\nReturning to main menu...\n")
-                return tracked_pods
+                return tracked_pods_full
             elif usr_choice == 'r':
                 break
             else:
@@ -379,13 +375,13 @@ def dummy_search_by_title_menu(tracked_pods):
         if usr_choice == 'r':
             continue
 
-        return tracked_pods
+        return tracked_pods_full
 
-def search_and_add_menu(tracked_pods):
+def search_and_add_menu(tracked_pods_full):
     while True:
         usr_option = input("\n-----SEARCH AND ADD MENU-----\n1. Search by title & author\n2. Other search\nq. Return to main menu\n: ")
         if usr_option == '1':
-            tracked_pods = dummy_search_by_title_menu(tracked_pods)
+            tracked_pods = dummy_search_by_title_menu(tracked_pods_full)
             # tracked_pods = search_by_title_menu(tracked_pods)
             return tracked_pods    
         elif usr_option == '2':
@@ -397,7 +393,7 @@ def search_and_add_menu(tracked_pods):
 def main_menu(tracked_pods_full: Dict):
     while True:
         valid_choices = ['1', '2', 'q']
-        print("----------MAIN MENU----------\n1. View and delete tracked podcasts\n2. Search and add a new episode\nq. Quit the program")
+        print("----------MAIN MENU----------\n1. View and delete tracked podcasts\n2. Search and add a new podcast\nq. Quit the program")
         usr_option = input(": ")
         if usr_option == '1':
             tracked_pods = view_and_delete_menu(tracked_pods_full)
@@ -419,10 +415,10 @@ def main_menu(tracked_pods_full: Dict):
 # tracked_pods2 = []
 # tracked_pods = [
 # {'title': 'The Rest is History','ep_dloads': 3, 'tracked_from': '11/04/23', 
-#  'link': 'https://shows.acast.com/the-rest-is-history-episode', 'last_ep': '23/04/23 - "Atlantis"'},
+#  'link': 'https://shows.acast.com/the-rest-is-history-podcast', 'last_ep': '23/04/23 - "Atlantis"'},
 
 # {'title': 'The Rest is Politics','ep_dloads': 28, 'tracked_from': '11/10/22', 
-# 'link': 'https://shows.acast.com/the-rest-is-poltics-episode', 
+# 'link': 'https://shows.acast.com/the-rest-is-poltics-podcast', 
 #  'last_ep': '23/04/23 - "Macron, Xi Jinping and striking teachers"'}
 # ]
 
