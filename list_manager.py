@@ -1,6 +1,7 @@
 from ast import Dict
 import os
 import datetime
+import time
 from dotenv import load_dotenv
 import json
 from bs4 import BeautifulSoup
@@ -8,9 +9,8 @@ import textwrap
 from rich import print as rprint
 from rich.console import Console
 from dev_tools.api_dev_tools import PodcastIndexConfig, PodcastIndexAPI
+import requests
 
-# TODO Everything needs reworking if we're passing this as a dict
-# TODO It's not worth it right now
 
 def delete_podcast_menu(usr_choice, idx_tracked_pods, tracked_pods_full):
     # print(f"User selected: {usr_choice}")
@@ -197,28 +197,36 @@ def search_by_title_menu(tracked_pods):
 
         return tracked_pods
 
-def dummy_add_latest_episodes(feed_title, feed_id):
+def sanitize_filename(filename):
+    invalid_chars = ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+    for char in invalid_chars:
+        filename = filename.replace(char, '')
+    return filename
+
+def latest_episodes_add_and_download(feed_title, feed_id):
     
     # get recent episodes DUMMY
     file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/pi_output_cache/episode_for_track_pod/001_talk_python_last_23.json"
     with open(file_path, 'r') as json_file:
         dummy_api_response = json.load(json_file)
-
-    recent_episode_list = dummy_api_response['items']
+    recent_episodes_list = dummy_api_response['items']
 
     # get recent episodes from API (20?)
     
 
-    # display recent episodes?
+    # display recent episodes
     print("\n-------------------")
     print(feed_title.upper())
+    print(feed_id)
     print("-------------------\n")
 
-    for podcast in recent_episode_list:
-        ep_num = podcast['podcast']
+    
+    for podcast in recent_episodes_list:
+        ep_num = podcast['episode']
         ep_title = podcast['title']
         ep_date = podcast['datePublishedPretty']
         ep_duration_seconds = podcast['duration']
+        
 
         # REMOVE HTML     
         #! Likely issues. Need to experiment with more feeds / live with some uglyiness
@@ -251,22 +259,68 @@ def dummy_add_latest_episodes(feed_title, feed_id):
 
 
     # save episodes
-        print("Download podcast mp3 options to follow")
-        print()
+    valid_idxs_to_save = list(range(1, len(recent_episodes_list)+1))
+   
+    while True:
+        print("Enter 'd' to (d)ownload old episodes now")
+        print("Or enter 's' to (s)tart tracking without downloading old episodes")
+        usr_choice1 = input(":")
+        if usr_choice1 == 's':
+            break
+        elif usr_choice1 == 'd':
+            while True:
+                print("\n\n----------CHOOSE YOUR DOWNLOADS---------\n\n")
 
-    # print("To save any episodes now, enter the index number.")
-    # print("Enter x to save one podcast")
-    # print("Enter idx1, idx2, idx3 etc. to save multiple episodes")
-    # print("Enter idx - idx to save a range")
-    # usr_choice = input(": ")
+                for idx, podcast in enumerate(recent_episodes_list):
+                    ep_num = podcast['episode']
+                    ep_title = podcast['title']
+                    shortened_title = ep_title if len(ep_title) <= 50 else ep_title[:50] + "..."
+                    formatted_title = f"{shortened_title:<53}"
+                    ep_date = convert_unix_time(podcast['datePublished'], 'date')
+                    print(f"{idx:>2}. - {formatted_title} | Episode: {ep_num:>4} | {ep_date} |")
 
-    # process usr_choice
+                print(f"\nEnter an index number from 1 to {len(recent_episodes_list)} to save an episode")
+                print("Use with ',' to download multiple episodes (e.g. 1, 2, 3)")
+                usr_choice2 = input(": ")
+                # print(usr_choice2)
+                # print(usr_choice2.split(','))
+                try:       
+                    usr_selects = [int(x) for x in usr_choice2.split(',')]
+                    if not all(0 <= index < len(recent_episodes_list) for index in usr_selects):
+                        raise ValueError
+                except ValueError:
+                    print("\n>>> INVALID CHOICE(S). Please pick again.")
+                
+                # download required episodess
+                for episode_selected in usr_selects:
+                    for idx, episode in enumerate(recent_episodes_list):
+                        if episode_selected == idx:
+                            episode_title = (episode['title'])
+                            url = podcast['enclosureUrl']
+                            print(episode_title)
+                            print(url)
 
+                            # file_directory = "/Users/chrisbillows/Library/CloudStorage/Dropbox/Apps"
+                            # safe_title = sanitize_filename(episode_title)
+                            # file_name = f"{safe_title}.mp3"
+                            # file_path = os.path.join(file_directory, file_name)
+                            # response = requests.get(url)
 
-    # save required episodes
+                            # if response.status_code == 200:
+                            #     with open(file_path, "wb") as f:
+                            #         f.write(response.content)
+                            #         print(f'Downloaded "{episode_title}" to Dropbox.')
+                            #         time.sleep(5)
+                                    
+                            # else:
+                            #     print(f'Failed to download "{episode_title}". Status code: {response.status_code}')
+                            break
+        else:
+            print("\n>>> INVALID CHOICE\nPlease choose again")
+    
+ 
 
-
-    return recent_episode_list
+    return recent_episodes_list
 
 def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
     # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
@@ -300,15 +354,19 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
                 print('\nAdd podcast cancelled. Returning to main menu... (maybe one day returns to search results?)')
                 return tracked_pods_full
             
-            # TODO ADD LATEST EPISODES
-            # recent_episodes = dummy_add_latest_episodes(feed_title, feed_id) 
-            # feed_title = podcast[1]['title'] 
-            # feed_id = podcast[1]['id']
+            # ADD LATEST EPISODES TO EPISODE JSON
+            feed_title = podcast[1]['title'] 
+            feed_id = podcast[1]['id']
             # print(f"The feed id is {feed_id}")
+            recent_episodes_list = latest_episodes_add_and_download(feed_title, feed_id) 
+            return tracked_pods_full
+            
+            print("\nRECENT EPISODE BROUGHT BACK HERE ARE: \n\n")
+            print(recent_episodes_list)            
             
             #TODO ADD TRACK TIME
             # add {podsidian: [{tracked_time: time}]} - this format allows for adding more metadata later if I want
-            
+                        
             tracked_pods_full["podcasts being tracked"].append(podcast[1])
             print("-----NEW TRACKED PODS-----")
             print([x['title'] for x in tracked_pods_full['podcasts being tracked']])
