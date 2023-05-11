@@ -265,19 +265,25 @@ def latest_episodes_add_and_download(feed_title, feed_id):
         print("Enter 'd' to (d)ownload old episodes now")
         print("Or enter 's' to (s)tart tracking without downloading old episodes")
         usr_choice1 = input(":")
-        if usr_choice1 == 's':
-            break
+        if usr_choice1 not in ['s', 'd']:
+            print("\n>>> INVALID CHOICE\nPlease choose again\n")        
+            continue
+        elif usr_choice1 == 's':
+            return recent_episodes_list
         elif usr_choice1 == 'd':
+            display = 0
             while True:
-                print("\n\n----------CHOOSE YOUR DOWNLOADS---------\n\n")
 
-                for idx, podcast in enumerate(recent_episodes_list):
-                    ep_num = podcast['episode']
-                    ep_title = podcast['title']
-                    shortened_title = ep_title if len(ep_title) <= 50 else ep_title[:50] + "..."
-                    formatted_title = f"{shortened_title:<53}"
-                    ep_date = convert_unix_time(podcast['datePublished'], 'date')
-                    print(f"{idx:>2}. - {formatted_title} | Episode: {ep_num:>4} | {ep_date} |")
+                if display == 0:
+                    print("\n\n----------CHOOSE YOUR DOWNLOADS---------\n\n")
+                    for idx, podcast in enumerate(recent_episodes_list, 1):
+                        ep_num = podcast['episode']
+                        ep_title = podcast['title']
+                        shortened_title = ep_title if len(ep_title) <= 50 else ep_title[:50] + "..."
+                        formatted_title = f"{shortened_title:<53}"
+                        ep_date = convert_unix_time(podcast['datePublished'], 'date')
+                        print(f"{idx:>2}. - {formatted_title} | Episode: {ep_num:>4} | {ep_date} |")
+                        display = 1
 
                 print(f"\nEnter an index number from 1 to {len(recent_episodes_list)} to save an episode")
                 print("Use with ',' to download multiple episodes (e.g. 1, 2, 3)")
@@ -286,14 +292,15 @@ def latest_episodes_add_and_download(feed_title, feed_id):
                 # print(usr_choice2.split(','))
                 try:       
                     usr_selects = [int(x) for x in usr_choice2.split(',')]
-                    if not all(0 <= index < len(recent_episodes_list) for index in usr_selects):
+                    if not all(1 <= index <= len(recent_episodes_list) for index in usr_selects):
                         raise ValueError
                 except ValueError:
-                    print("\n>>> INVALID CHOICE(S). Please pick again.")
+                    print("\n>>> INVALID CHOICE(S). Please pick again.\n")
+                    continue
                 
                 # download required episodess
                 for episode_selected in usr_selects:
-                    for idx, episode in enumerate(recent_episodes_list):
+                    for idx, episode in enumerate(recent_episodes_list, 1):
                         if episode_selected == idx:
                             episode_title = (episode['title'])
                             url = podcast['enclosureUrl']
@@ -314,13 +321,11 @@ def latest_episodes_add_and_download(feed_title, feed_id):
                                     
                             # else:
                             #     print(f'Failed to download "{episode_title}". Status code: {response.status_code}')
-                            break
+                break # returns to d or s again
+            # break # returns back to add_podcast_menu()
         else:
-            print("\n>>> INVALID CHOICE\nPlease choose again")
-    
- 
-
-    return recent_episodes_list
+            print("Error. Returning to main menu.")
+            return recent_episodes_list
 
 def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
     # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
@@ -359,6 +364,9 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
             feed_id = podcast[1]['id']
             # print(f"The feed id is {feed_id}")
             recent_episodes_list = latest_episodes_add_and_download(feed_title, feed_id) 
+            
+            ### DO WE JUST APPEND recent_episodes_list here and then return the full thing?
+            ## ADDING THE DISPLAY STUFF IF WE WANT e.g. confirmation podcast is tracked and display new list
             return tracked_pods_full
             
             print("\nRECENT EPISODE BROUGHT BACK HERE ARE: \n\n")
