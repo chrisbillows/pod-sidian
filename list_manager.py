@@ -10,6 +10,7 @@ from rich import print as rprint
 from rich.console import Console
 from dev_tools.api_dev_tools import PodcastIndexConfig, PodcastIndexAPI
 import requests
+import podcastindex
 
 
 def delete_podcast_menu(usr_choice, idx_tracked_pods, tracked_pods_full):
@@ -205,16 +206,20 @@ def sanitize_filename(filename):
 
 def latest_episodes_add_and_download(feed_title, feed_id):
     
-    # get recent episodes DUMMY
-    file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/pi_output_cache/episode_for_track_pod/001_talk_python_last_23.json"
-    with open(file_path, 'r') as json_file:
-        dummy_api_response = json.load(json_file)
-    recent_episodes_list = dummy_api_response['items']
+    #! get recent episodes DUMMY
+    # file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/pi_output_cache/episode_for_track_pod/001_talk_python_last_23.json"
+    # with open(file_path, 'r') as json_file:
+    #     dummy_api_response = json.load(json_file)
+    # recent_episodes_list = dummy_api_response['items']
 
-    # get recent episodes from API (20?)
-    
-
-
+    #! get recent episodes from API
+    config = {
+        "api_key": 'HXCG8NBSHZAG7WYFWHQV',
+        "api_secret": 'WnkCGw5QWPy3Q9DugJ^vwBPfHgjmEQUAm9Wvs^ZB'
+    }
+    index = podcastindex.init(config)
+    api_response = index.episodesByFeedId(feed_id, max_results=10)
+    recent_episodes_list = api_response['items']
 
     # display recent episodes
     print("\n-------------------")
@@ -278,7 +283,7 @@ def latest_episodes_add_and_download(feed_title, feed_id):
                         shortened_title = ep_title if len(ep_title) <= 50 else ep_title[:50] + "..."
                         formatted_title = f"{shortened_title:<53}"
                         ep_date = convert_unix_time(podcast['datePublished'], 'date')
-                        print(f"{idx:>2}. - {formatted_title} | Episode: {ep_num:>4} | {ep_date} |")
+                        print(f"{idx:>2}. - {formatted_title} | Episode: {ep_num if ep_num is not None else 'N/A':>4} | {ep_date} |")
                         display = 1
 
                 print(f"\nEnter an index number from 1 to {len(recent_episodes_list)} to save an episode")
@@ -364,19 +369,16 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
             
             tracked_pods_full["podcasts being tracked"].append(podcast[1])
             
+            print("*" * 30)
+            print("****       SUCCESS!       ****")
+            print("*" * 30)
+     
             print(f'\nYou are now tracking "{podcast[1]["title"].upper()}"')
             print(f'\nThe last episode was "{recent_episodes_list[0]["title"].upper()}" published {recent_episodes_list[0]["datePublishedPretty"]}')
             print(f"\nAll future episodes will automatically download to Dropbox/Apps/Otter for automatic upload and transcription")
             print("Happy listening!")
 
-            # print("JUST THE EPISODES IN THE FULL JSON ARE: ")
-            # for podcast in tracked_pods_full['podcasts being tracked']:
-            #     print('----------------')
-            #     print(podcast['title'])
-            #     episodes = podcast.get('episodes', 'NO EPISODES LISTED')    
-            #     for episode in episodes:
-            #         print(episode['title'])
-            #     print()
+     
             
             print()
             print("-----UPDATED TRACKED PODS LIST-----")
