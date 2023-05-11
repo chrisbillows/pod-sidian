@@ -214,20 +214,20 @@ def latest_episodes_add_and_download(feed_title, feed_id):
     # get recent episodes from API (20?)
     
 
+
+
     # display recent episodes
     print("\n-------------------")
     print(feed_title.upper())
     print(feed_id)
     print("-------------------\n")
-
     
     for podcast in recent_episodes_list:
         ep_num = podcast['episode']
         ep_title = podcast['title']
         ep_date = podcast['datePublishedPretty']
         ep_duration_seconds = podcast['duration']
-        
-
+ 
         # REMOVE HTML     
         #! Likely issues. Need to experiment with more feeds / live with some uglyiness
         #! WILL BE BETTER TO TEST WITH FULL DESCRIPTION ENDPOINTS
@@ -256,10 +256,6 @@ def latest_episodes_add_and_download(feed_title, feed_id):
         print(description_wrapped)
         # console.print(description, markup=True)
         print()
-
-
-    # save episodes
-    valid_idxs_to_save = list(range(1, len(recent_episodes_list)+1))
    
     while True:
         print("Enter 'd' to (d)ownload old episodes now")
@@ -359,27 +355,37 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
                 print('\nAdd podcast cancelled. Returning to main menu... (maybe one day returns to search results?)')
                 return tracked_pods_full
             
-            # ADD LATEST EPISODES TO EPISODE JSON
             feed_title = podcast[1]['title'] 
             feed_id = podcast[1]['id']
-            # print(f"The feed id is {feed_id}")
+            
             recent_episodes_list = latest_episodes_add_and_download(feed_title, feed_id) 
+            podcast[1]['episodes'] = recent_episodes_list
+            podcast[1]['podsidianDateTracked'] = int(time.time())
             
-            ### DO WE JUST APPEND recent_episodes_list here and then return the full thing?
-            ## ADDING THE DISPLAY STUFF IF WE WANT e.g. confirmation podcast is tracked and display new list
-            return tracked_pods_full
-            
-            print("\nRECENT EPISODE BROUGHT BACK HERE ARE: \n\n")
-            print(recent_episodes_list)            
-            
-            #TODO ADD TRACK TIME
-            # add {podsidian: [{tracked_time: time}]} - this format allows for adding more metadata later if I want
-                        
             tracked_pods_full["podcasts being tracked"].append(podcast[1])
-            print("-----NEW TRACKED PODS-----")
-            print([x['title'] for x in tracked_pods_full['podcasts being tracked']])
             
-            return tracked_pods_full    
+            print(f'\nYou are now tracking "{podcast[1]["title"].upper()}"')
+            print(f'\nThe last episode was "{recent_episodes_list[0]["title"].upper()}" published {recent_episodes_list[0]["datePublishedPretty"]}')
+            print(f"\nAll future episodes will automatically download to Dropbox/Apps/Otter for automatic upload and transcription")
+            print("Happy listening!")
+
+            # print("JUST THE EPISODES IN THE FULL JSON ARE: ")
+            # for podcast in tracked_pods_full['podcasts being tracked']:
+            #     print('----------------')
+            #     print(podcast['title'])
+            #     episodes = podcast.get('episodes', 'NO EPISODES LISTED')    
+            #     for episode in episodes:
+            #         print(episode['title'])
+            #     print()
+            
+            print()
+            print("-----UPDATED TRACKED PODS LIST-----")
+            print([x['title'] for x in tracked_pods_full['podcasts being tracked']])
+            print()
+            print("Returning to main menu...")
+            print()
+
+            return tracked_pods_full          
 
 def dummy_search_by_title_menu(tracked_pods_full):
     # print(f"\n\n{'-'* 25}\nI am tracked pods: {tracked_pods} - and my type is {type(tracked_pods)}\n{'-'* 25}\n\n")
@@ -469,20 +475,11 @@ def main_menu(tracked_pods_full: Dict):
     print("---END---")  
 
 
-# tracked_pods3 = {
+# tracked_pods_empty = {
 #         "podcasts being tracked": 
 #         [
 #     ]
 # }
-# tracked_pods2 = []
-# tracked_pods = [
-# {'title': 'The Rest is History','ep_dloads': 3, 'tracked_from': '11/04/23', 
-#  'link': 'https://shows.acast.com/the-rest-is-history-podcast', 'last_ep': '23/04/23 - "Atlantis"'},
-
-# {'title': 'The Rest is Politics','ep_dloads': 28, 'tracked_from': '11/10/22', 
-# 'link': 'https://shows.acast.com/the-rest-is-poltics-podcast', 
-#  'last_ep': '23/04/23 - "Macron, Xi Jinping and striking teachers"'}
-# ]
 
 tracked_pods_json = 'tracked_pods_jsons/002_pods_from_json.json'
 
