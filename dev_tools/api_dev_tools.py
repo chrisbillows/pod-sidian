@@ -192,18 +192,18 @@ class OutputHandler:
        
         file_number = 1
         while True:
-            output_file = f"{file_number:03d}_{method}.json"
+            output_file = f"{file_number:05d}_{method}.json"
             existing_files = os.listdir(output_directory)
     
             file_exists = False
             for file in existing_files:
-                if file.startswith(f"{file_number:03d}_"):
+                if file.startswith(f"{file_number:05d}_"):
                     file_exists = True
                     break
 
             if not file_exists:
                 break
-
+            
             file_number += 1
 
         with open(os.path.join(output_directory, output_file), "w") as f:

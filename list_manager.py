@@ -13,6 +13,91 @@ import requests
 import podcastindex
 
 
+# def read_current_tracked_json():
+    
+#        if len(existing_files) == 0:
+     
+
+
+#     with open(os.path.join(tracked_pods_json_directory, output_file), "w") as f:
+#         json.dump(tracked_pods_empty, f, indent=4)
+
+
+#     with open(tracked_pods_json, 'r') as f:
+#         json_data = f.read()
+#         tracked_pods_full = json.loads(json_data)    
+
+# def write_new_tracked_json():
+#     tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+
+
+
+
+# def write_updated_json():
+#     tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+#     existing_files = os.listdir(tracked_pods_json_directory)
+   
+#     file_number = len(existing_files) + 1
+     
+#     # breaks at 10,000 files
+#     if file_number < 1000:
+#         output_file = f"{file_number:03d}_TRACKED_PODS_{formatted_datetime}.json"
+#     else: 
+#         output_file = f"{file_number:04d}_TRACKED_PODS_{formatted_datetime}.json"
+
+def json_formatted_date():
+    current_datetime = datetime.now()
+    formatted_datetime = current_datetime.strftime("%Y%m%d %H%M")
+    return formatted_datetime
+
+
+
+
+def load_latest_json():
+    tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+    existing_files = os.listdir(tracked_pods_json_directory)
+
+
+
+
+
+def write_blank_json():
+    tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+    tracked_pods_blank = {"podcasts being tracked": []}
+        
+    formatted_datetime = json_formatted_date()
+    output_file = f"001_TRACKED_PODS_{formatted_datetime}.json"
+    updated_tracked_json = os.path.join(tracked_pods_json_directory, output_file)
+    
+    with open(updated_tracked_json, "w") as f:
+        json.dump(tracked_pods_blank, f, indent=4)
+    return path
+
+
+
+def check_if_dir_empty():
+    tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+    existing_files = os.listdir(tracked_pods_json_directory)
+    if len(existing_files) == 0:
+        return True
+    else:
+        return False
+
+def ensure_json_directory_exists():
+    tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
+    os.makedirs(tracked_pods_json_directory, exist_ok=True)
+
+
+def get_current_json():
+    ensure_json_directory_exists()
+    no_current_json = check_if_dir_empty()
+    if no_current_json:
+        write_blank_json()
+    current_tracked_json = load_latest_json()
+    return current_tracked_json 
+
+
+
 def delete_podcast_menu(usr_choice, idx_tracked_pods, tracked_pods_full):
     # print(f"User selected: {usr_choice}")
     # print(f"User selection type is {type(usr_choice)}")
@@ -368,6 +453,7 @@ def add_podcast_menu(usr_choice, idxed_search_results, tracked_pods_full):
             podcast[1]['podsidianDateTracked'] = int(time.time())
             
             tracked_pods_full["podcasts being tracked"].append(podcast[1])
+
             
             print("*" * 30)
             print("****       SUCCESS!       ****")
@@ -477,11 +563,7 @@ def main_menu(tracked_pods_full: Dict):
     print("---END---")  
 
 
-# tracked_pods_empty = {
-#         "podcasts being tracked": 
-#         [
-#     ]
-# }
+
 
 tracked_pods_json = 'tracked_pods_jsons/002_pods_from_json.json'
 
