@@ -1,7 +1,8 @@
 import os
 from datetime import datetime
 import json
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any
+
 
 class TrackedJsonManager:
     
@@ -17,7 +18,40 @@ class TrackedJsonManager:
             self._write_blank_json()  # also updates metafile 
         current_tracked_json = self._load_latest_json()
         return current_tracked_json 
+    
+    def write_new_current_json(self, updated_current_tracked_json) -> None:
+        '''
+        Takes a dictionary that will be a revised version of current_tracked_json. i.e. The function will have been passed current_tracked_json in
+        memory and altered it. 
+        
+        Alterations would be a) adding a podcast b) deleting a podcast c) adding tracked episodes.
 
+        Function writes the updated version to LIVE_DATABASE with to a new file with an incremented file number {00n+1}.
+
+        This will become the 'new' current_tracked_json the next time the database is checked.  
+
+        Previous versions of current_tracked_json are currently preserved.
+
+        The function returns None.
+
+        This is intentional. If a display of the updated current_tracked_json is required, this should be reloaded, to display to the user the
+        database's current state.
+        '''
+        self._ensure_json_directory_exists()
+        no_current_json = self._check_if_dir_empty()
+        if no_current_json:
+            self._write_blank_json()  # also updates metafile 
+        
+        file_number = len(self._list_files_in_LIVE_DATABASE()) + 1
+        formatted_datetime = self._json_formatted_date()
+        output_file = f"{file_number:04d}_TRACKED_PODS_{formatted_datetime}.json"
+        updated_tracked_json = os.path.join(self.tracked_pods_json_directory, output_file)
+        
+        with open(updated_tracked_json, "w") as f:
+            json.dump(updated_current_tracked_json, f, indent=4)
+
+        self._update_metafile(updated_tracked_json)
+     
     def _ensure_json_directory_exists(self) -> None:
         os.makedirs(self.tracked_pods_json_directory, exist_ok=True)
 
@@ -36,7 +70,7 @@ class TrackedJsonManager:
         tracked_pods_blank = {"podcasts being tracked": []}
             
         formatted_datetime = self._json_formatted_date()
-        output_file = f"001_TRACKED_PODS_{formatted_datetime}.json"
+        output_file = f"0001_TRACKED_PODS_{formatted_datetime}.json"
         updated_tracked_json = os.path.join(self.tracked_pods_json_directory, output_file)
         
         with open(updated_tracked_json, "w") as f:
@@ -87,3 +121,4 @@ class TrackedJsonManager:
 json_manager = TrackedJsonManager()
 current_json = json_manager.get_current_json()
 print(current_json)
+print(json_manager.write_new_current_json({"podcasts being tracked": [1, 2, 3]}))
