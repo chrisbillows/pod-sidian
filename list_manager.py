@@ -565,7 +565,7 @@ def main_menu(tracked_pods_full: Dict):
 
 
 
-tracked_pods_json = 'tracked_pods_jsons/002_pods_from_json.json'
+tracked_pods_json = 'prototypes/cron_job/tracked_pods_jsons/002_pods_from_json.json'
 
 with open(tracked_pods_json, 'r') as f:
     json_data = f.read()

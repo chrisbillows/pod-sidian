@@ -19,8 +19,8 @@ with open(tracked_pods_json, 'r') as f:
 def api_call(pod_id):
     config = PodcastIndexConfig()
     api_instance = PodcastIndexAPI(config.config)
-    recent_episdes = api_instance.index.episodesByFeedId(pod_id, max_results=5)
-    return recent_episdes
+    recent_episodes = api_instance.index.episodesByFeedId(pod_id, max_results=5)
+    return recent_episodes
 
 for podcast in tracked_pods['podcasts being tracked']:
         pod_id = podcast['id']

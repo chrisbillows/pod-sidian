@@ -3,14 +3,18 @@ from datetime import datetime
 import json
 from typing import List, Dict, Any
 
+class Model:
+    pass
 
-class TrackedJsonManager:
+
+
+class DatabaseManager:
     
     def __init__(self):
         self.tracked_pods_json_directory = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE'
         self.metafile_path = '/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_METAFILE/metafile.txt'
 
-    def get_current_json(self) -> Dict[str, Any]:
+    def json_getter(self) -> Dict[str, Any]:
         """Facade to load the latest version of the tracked podcast into memory. Creates one if no file found."""
         self._ensure_json_directory_exists()
         no_current_json = self._check_if_dir_empty()
@@ -19,7 +23,7 @@ class TrackedJsonManager:
         current_tracked_json = self._load_latest_json()
         return current_tracked_json 
     
-    def write_new_current_json(self, updated_current_tracked_json) -> None:
+    def json_writer(self, updated_current_tracked_json) -> None:
         """
         Takes a dictionary that will be a revised version of current_tracked_json. i.e. The function will have been passed current_tracked_json in
         memory and altered it. 
@@ -118,7 +122,7 @@ class TrackedJsonManager:
         formatted_datetime = current_datetime.strftime("%Y%m%d %H%M")
         return formatted_datetime
     
-json_manager = TrackedJsonManager()
-current_json = json_manager.get_current_json()
-print(current_json)
-print(json_manager.write_new_current_json({"podcasts being tracked": [1, 2, 3]}))
+# database_manager = DatabaseManager()
+# latest_data = database_manager.json_getter()
+# database_manager.json_writer()
+
