@@ -7,7 +7,6 @@ class Model:
     pass
 
 
-
 class DatabaseManager:
     
     def __init__(self):

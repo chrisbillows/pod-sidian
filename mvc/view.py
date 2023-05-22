@@ -1,13 +1,43 @@
 import os
 import platform
 import time
+import datetime
+
 
 class Display:
     
     def __init__(self) -> None:
         pass
-        
-    def main_menu(self):
+    
+    def _clear_console(self):
+        if platform.system().lower() == "windows":
+            os.system("cls")
+        else:
+            os.system("clear")
+            
+    def _display_unix_time(self, time_unix, format):
+        date_time = datetime.datetime.fromtimestamp(time_unix)
+        if format == 'date':
+            human_readable = date_time.strftime("%Y-%m-%d")
+        if format == 'date&time':
+            human_readable = date_time.strftime("%Y-%m-%d %H:%M:%S")
+        return human_readable
+
+    def _create_index_choice_sentence(self, valid_indexes):
+        valid_idx_nums = list(range(1, valid_indexes + 1))
+        valid_idx_strs = [str(num) for num in valid_idx_nums]
+
+        if valid_indexes <= 5:
+            valid_idx_joined = ', '.join(valid_idx_strs[:-1]) + ' or ' + valid_idx_strs[-1]
+        else:
+            valid_idx_joined = f"{valid_idx_strs[0]} - {valid_idx_strs[-1]}"
+      
+    
+# ---------------------------------------------------------
+#                   MENU 0 - MAIN MENU
+# ---------------------------------------------------------
+    
+    def main_menu_full(self):
         self._clear_console()
         print("---------MAIN MENU--------")
         print()
@@ -15,34 +45,38 @@ class Display:
         print("----------------")
         print("1. View tracked podcasts")
         print("2. Stop tracking a podcast")
-        print("3. View episode download log")
-        print("4. Download extra episodes")
+        print("3. Download history")
+        print("4. Download additional episodes")
         print()
         print("PODCAST SEARCH")
         print("--------------")
         print("5. Search by title")
-        print("6. Trending podcasts (& by catergory)")
-        print("7. New podcasts")
+        print("6. Trending podcasts")
+        print("7. Newly launched podcasts")
         print()
         print("EPISODE SEARCH")
         print("--------------")
-        print("8. Search by person")
-        print("9. Recent episodes (& by category)")
+        print("8. All recent episodes (from any podcast)")
+        print("9. All episodes mentioning a person (from any podcast)")
         print()
         print("Please select an option (1-9) or press 'q' to (q)uit")
         
-    def main_menu_truncated_no_clear_console(self):
+    def main_menu_invalid(self):
         print()
         print(">>> INVALID CHOICE")
         print()
-        print("Please select 1 - 9 (or 'q' to quit the program)")
+        print("Please select 1 - 9 (or 'q' to (q)uit the program)")
     
     def main_menu_goodbye(self):
         print()
         print("Thanks for using the program. Goodbye!")            
         print()
+
+# ---------------------------------------------------------
+#                   MENU 1 - VIEW TRACKED PODCASTS
+# ---------------------------------------------------------
     
-    def viewing_tracked_pods_menu(self, idx_tracked_pods):
+    def view_tracked_podcasts_full(self, idx_tracked_pods):
         print("-----VIEWING TRACKED PODCASTS-----")
         print()
         for idx, pod in idx_tracked_pods:
@@ -50,21 +84,22 @@ class Display:
             print(f"{24 * '-'}")
             print(f"Link: {pod['link']}")
             # f"Tracked from: {pod['tracked_from']}",
+            print()
             print("Last ten episodes: ")
             
             for episode in pod['episodes'][:10]:
-                print(f"{episode['datePublishedPretty']} | EP: {episode['episode']} - {episode['title']}")
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} | EP: {episode['episode']} - {episode['title']}")
             print()
         print("Enter 'm' to return to (m)ain menu")
-        print("Or, 'd' to select a podcast for deletion")
+        print("Or, 'd' to select a podcast for (d)eletion")
         
-    # def viewing_tracked_podcasts_truncated():                           
-    #     print("Enter 'q' to return to main menu.")
-    #     print(f"Or, to delete a podcast to delete select {valid_idx_joined}: ")
-    #     usr_choice = input(": ")
-   
- 
-    def viewing_tracked_pods_empty(self):
+    def view_tracked_podcasts_invalid(self):
+        print()
+        print(">>> INVALID CHOICE")
+        print()
+        print("Please select 'd' or 'm' ")
+         
+    def view_tracked_podcasts_empty(self):
         self._clear_console()
         print("-----VIEWING TRACKED PODCASTS-----")
         print()
@@ -73,35 +108,146 @@ class Display:
         print("Returning to main menu...")
         print()
         time.sleep(3)
-    
-    def viewing_tracked_pods_invalid(self):
-        print(">>> INVALID CHOICE")
+
+# ---------------------------------------------------------
+#                   MENU 2 - STOP TRACKING A PODCAST
+# ---------------------------------------------------------
+
+    def stop_tracking_a_podcast_full(self, idx_tracked_pods, valid_indexes):
+        print("-----STOP TRACKING A PODCAST-----")
         print()
-        print("Please select 'd' or 'm' ")
-        
-    def return_to_main(self):
+        for idx, pod in idx_tracked_pods:
+            print(f"{idx}. {pod['title'].upper()}")
         print()
-        print("Returning to main menu...")
+        print(f"To delete a podcast, select {self._create_index_choice_sentence(valid_indexes)}: ")
+        print()
+        print("Enter 'm' to return to main menu.")
+
+    def stop_tracking_a_podcast_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
     
-    def m1_del_conf(self):
+    def stop_tracking_a_podcast_user_confirmation(self):
         print("Are you sure you want to delete {PODCAST}")
         input("Enter'yes' to confirm: ")
         
-    def m1_del_cancel(self):
+    def stop_tracking_a_podcast_deletion_cancelled(self):
         print("Deletion cancelled. Returning to main menu...")
     
-    def m1_del_conf(self):
+    def stop_tracking_a_podcast_deletion_successful(self):
         print("Podcast deleted ")
-                
-    def m1_view_del_short(self):
-        print("Enter 'q' to return to main menu.")
-        print("Or, to delete a podcast to delete select 1, 2 or 3: ")
-        input(": ")
         
+# ---------------------------------------------------------
+#  MENU 3 - DOWNLOAD HISTORY
+# ---------------------------------------------------------
 
-    def _clear_console(self):
-        if platform.system().lower() == "windows":
-            os.system("cls")
-        else:
-            os.system("clear") 
-        
+    def download_history_full(self):
+        print()
+        print("This will be the DOWNLOAD HISTORY OPTIONS")
+        print()
+        print("'m' to return to main menu")
+
+    def download_history_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+# ---------------------------------------------------------
+#  MENU 4 - DOWNLOAD ADDITIONAL EPISODES
+# ---------------------------------------------------------
+
+    def download_additional_episodes_full(self):
+        print()
+        print("This will be DOWNLOAD ADDITIONAL EPISODES")
+        print()
+        print("'m' to return to main menu")
+
+    def download_additional_episodes_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+# ---------------------------------------------------------
+#  MENU 5 - SEARCH BY TITLE
+# ---------------------------------------------------------
+
+    def search_by_title_full(self):
+        print()
+        print("This will be the SEARCH BY TITLE HANDLER")
+        print()
+        print("'m' to return to main menu")
+
+    def search_by_title_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+# ---------------------------------------------------------
+#  MENU 6 - TRENDING PODCASTS
+# ---------------------------------------------------------
+
+    def trending_podcasts_full(self):
+        print()
+        print("This will be the TRENDING PODCASTS")
+        print()
+        print("'m' to return to main menu")
+
+    def trending_podcasts_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+
+# ---------------------------------------------------------
+#  MENU 7 - NEWLY LAUNCHED PODCASTS
+# ---------------------------------------------------------
+
+    def newly_launched_podcasts_full(self):
+        print()
+        print("This will be NEWLY LAUNCHED PODCASTS")
+        print()
+        print("'m' to return to main menu")
+
+    def newly_launched_podcasts_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+# ---------------------------------------------------------
+#  MENU 8 - ALL RECENT EPISODES
+# ---------------------------------------------------------
+
+    def all_recent_episodes_full(self):
+        print()
+        print("This will be ALL RECENT EPISODES")
+        print()
+        print("'m' to return to main menu")
+
+    def all_recent_episodes_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
+
+# ---------------------------------------------------------
+#  MENU 9 - ALL EPISODES MENTIONING A PERSON
+# ---------------------------------------------------------
+
+    def all_episodes_mentioning_a_person_full(self):
+        print()
+        print("This will be EPISODES MENTIONING A PERSON")
+        print()
+        print("'m' to return to main menu")
+
+    def all_episodes_mentioning_a_person_invalid(self):
+        print()
+        print("This will be the invalid option")
+        print()
+        print("Only 'm' can free you")
