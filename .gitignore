@@ -8,3 +8,4 @@ venv/
 pi_output_cache/
 scratch.py
 zzOLD/
+.vscode/
