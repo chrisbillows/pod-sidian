@@ -2,7 +2,7 @@ import datetime
 import hashlib
 import json
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import warnings
 
 import requests
@@ -32,11 +32,15 @@ class OutputSaver:
         self.output_main_dir = output_main_dir
         self.output_sub_dir = output_sub_dir
         
-    def save_output_to_json(self, payload: Dict[str, Any], method_name:str) -> None :
+    def save_output_to_json(self, payload: Dict[str, Any], method_name: str, search_term: Optional[str] = None) -> None:
         file_number = 1
         while True:
-            time = datetime.datetime.now().strftime("%Y%m%d %H%M")
-            output_file = f"{file_number:03d}_{method_name}_{time}.json"
+            time = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+            if search_term:
+                search_term = search_term.replace(' ', '-')
+                output_file = f"{file_number:03d}_{method_name}_{search_term}_{time}.json"
+            else:
+                output_file = f"{file_number:03d}_{method_name}_{time}.json"
             output_dir = os.path.join("cache", self.output_main_dir, self.output_sub_dir)
             os.makedirs(output_dir, exist_ok=True)
             existing_files = os.listdir(output_dir)
@@ -203,26 +207,52 @@ class PodcastIndexService:
         
         return response
 
-    def search_person(self, query: str, max: int = None, fulltext: bool = False) -> dict:
+    def search_by_person(self, person: str, max: int = None, fulltext: bool = False) -> dict:
+        """
+        Searches podcasts for a person. Searched fields are person tags, episode title, episode description, feed owner, feed author.
+                
+        The search can be customized with the optional `max` and `fulltext` parameters.
+                       
+        Note also -  likeWon't work as an advanced search tool - seems to privilege title field. e.g. 'sandy hook' gets
+        podcasts titled "Sandy etc" not where Sandy Hook is mentioned in the description
+        
+        Args:
+            person (str): The person to search for.
+            
+            max (int, optional): The maximum number of search results to return. The API
+                documentation states a maximum of 1000, but in practice, it seems to be 100.
+                Defaults to None, in which case the API's default maximum 60 is used.
+            
+            fulltext (bool, optional): Return the full text value of any text fields (ex: description). 
+                If not provided, text field values are truncated to 100 words. If True, the string 
+                'fulltext' is added to the payload. Defaults to False.
+
+        Returns:
+            dict: The search results, in the form returned by the API.
+
+        """
+                
         if max is not None and (max < 1 or max > 1000):
             raise ValueError("max must be between 1 and 1000")
-        # docs state max 1000 but I'm only getting 100
-        # Won't work as an advanced search tool - seems to privilege title field 
-        # e.g. 'sandy hook' gets podcasts titled "Sandy etc" not where Sandy Hook is mentioned in the description
+        
         url = "https://api.podcastindex.org/api/1.0" + "/search/byperson"
-        payload = {"q": query}
+        
+        payload = {"q": person}
+        
         if max is not None:
             payload["max"] = max
+        
         if fulltext:
             payload["fulltext"] = True  
+        
         response = self._make_request_get_result_helper(url, payload) 
+        
         return response
 
     def categories(self):
         url = "https://api.podcastindex.org/api/1.0" + "/categories/list"
         payload = {}
         response = self._make_request_get_result_helper(url, payload) 
-        # save_output_to_json(response, 'catergories', 'pi_output_cache/sample_requests_reponses')  
         return response  
         
     def trending_podcasts(self, max: int = None, since: int = None, lang: str = None, cat: str = None, notcat: str = None) -> dict:
@@ -272,15 +302,15 @@ class PodcastIndexService:
         # or use feed data which is the same but works on PI date, rather than the podcasts internal timestamp
         pass
     
-    def multi_search_multi_endpoints(self, searches: list, json_maker: OutputSaver) -> bool:
-        for s in searches:
+    def multi_search_multi_endpoints(self, searches: list) -> bool:
+        json_maker = OutputSaver()
+        for search in searches:
             try:
-                s_filename = s.replace(' ', '_')
-                search_payload = self.search(s)
-                search_by_title_payload = self.search_by_title(s)
-                json_maker.save_output_to_json(search_payload, f"search_{s_filename}")
-                json_maker.save_output_to_json(search_by_title_payload, f"search_by_title{s_filename}")
-                print(f"JSONS for {s} created.")
+                s_filename = search.replace(' ', '_')
+                # search_payload = self.search(s)
+                # search_by_title_payload = self.search_by_title(s)
+                search_by_person_payload = self.search_by_person(search)
+                json_maker.save_output_to_json(search_by_person_payload, method_name="search-by-person", search_term=s_filename)
             except Exception as e:
                 print(f"Error occurred: {e}")
                 return False
@@ -295,6 +325,7 @@ class PodcastIndexService:
 
         json_maker = OutputSaver(output_sub_dir="sample_set")
 
+        # TODO update to include new search_name argument for save_output_to_json ?
         for method_name, payload in payloads.items():
             json_maker.save_output_to_json(payload, method_name)
         print("Sample API calls extracted")
@@ -314,15 +345,15 @@ if __name__ == "__main__":
     config = PodcastIndexConfig()
     podcast_index_instance = PodcastIndexService(config.headers)
     json_maker = OutputSaver()
+    
+    people_list = ['Gwyneth Paltrow', 'Johnny Depp', 'Elon Musk', 'Primeagen', 'Anna Cramling', 'Dominic Sandbrook', 'Rory Stewart']
 
-
+    payload = podcast_index_instance.search_by_person("Elon Musk", 900, True)
+    json_maker.save_output_to_json(payload, 'search-by-person', "Elon Musk")
      
     # TODO so this works great - I need to make sure all the methods are working
 
 
-    # config = PodcastIndexConfig()
-    # podcast_index_instance = PodcastIndexService(config.headers)
-    # podcast_index_instance.fetch_all()
     
   
 
