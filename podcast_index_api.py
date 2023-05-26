@@ -24,6 +24,7 @@ class OutputSaver:
         output_main_dir (str, optional): Main directory for output files. Defaults to 
             "podcast_index_outputs".
         output_sub_dir (str, optional): Subdirectory for output files. Defaults to "temp".
+        
     """
 
     def __init__(self, output_main_dir="podcast_index_outputs", output_sub_dir="temp"):
@@ -67,6 +68,7 @@ class PodcastIndexConfig:
         api_secret (str): API secret retrieved from the environment variables.
         headers (dict): The headers to be used for API requests, created using 
             the API key and secret.
+            
     """   
     
     def __init__(self) -> None:
@@ -105,20 +107,50 @@ class PodcastIndexService:
 
     Args:
         headers (dict): The headers used for API requests.
+        
     """
    
     def __init__(self, headers) -> None:
         self.headers = headers
 
     def search(self, query: str, max: int = None, fulltext: bool = False) -> dict:
+        """
+        Searches podcasts by term. Searched fields are title, owner and author. 
+        (Use search_by_title for a pure title search)
+
+        The search can be customized with the optional `max` and `fulltext` parameters.
+
+        Args:
+            query (str): The term to search for.
+            
+            max (int, optional): The maximum number of search results to return. The API
+                documentation states a maximum of 1000, but in practice, it seems to be 60.
+                Defaults to None, in which case the API's default maximum is used.
+            
+            fulltext (bool, optional): Return the full text value of any text fields (ex: description). 
+                If not provided, text field values are truncated to 100 words. If True, the string 
+                'fulltext' is added to the payload. Defaults to False.
+
+        Returns:
+            dict: The search results, in the form returned by the API.
+
+        """
+       
         # title, author or owner  
+        # docs state max = 1000 but I've been getting max = 60
+
         url = "https://api.podcastindex.org/api/1.0" + "/search/byterm"
+        
         payload = {"q": query}
+        
         if max is not None:
             payload["max"] = max
+        
         if fulltext:
-            payload["fulltext"] = 'fulltext'   # in search by title this is changed to a bool
+            payload["fulltext"] = 'fulltext'   # in search_by_title this is changed to an actual bool
+        
         response = self._make_request_get_result_helper(url, payload)
+        
         return response
 
     def search_title(self, query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
@@ -131,7 +163,6 @@ class PodcastIndexService:
         if similar:
             payload['similar'] = True
         response = self._make_request_get_result_helper(url, payload)
-        # save_output_to_json(response, 'search_title', 'pi_output_cache/sample_requests_reponses')
         return response
 
     def search_person(self, query: str, max: int = None, fulltext: bool = False) -> dict:
@@ -147,7 +178,6 @@ class PodcastIndexService:
         if fulltext:
             payload["fulltext"] = True  
         response = self._make_request_get_result_helper(url, payload) 
-        # save_output_to_json(response, 'search_person', 'pi_output_cache/sample_requests_reponses')
         return response
 
     def categories(self):
