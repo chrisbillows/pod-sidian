@@ -250,9 +250,18 @@ class PodcastIndexService:
         return response
 
     def categories(self):
+        """
+        Returns the categories used by Podcast Index. Categories can be used as parameters with some other endpoints.
+        
+        Returns:
+            dict: The search results, in the form returned by the API.
+        """
         url = "https://api.podcastindex.org/api/1.0" + "/categories/list"
+        
         payload = {}
+        
         response = self._make_request_get_result_helper(url, payload) 
+        
         return response  
         
     def trending_podcasts(self, max: int = None, since: int = None, lang: str = None, cat: str = None, notcat: str = None) -> dict:
