@@ -2,7 +2,7 @@ import datetime
 import hashlib
 import json
 import os
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional, Union
 import warnings
 
 import requests
@@ -264,22 +264,53 @@ class PodcastIndexService:
         
         return response  
         
-    def trending_podcasts(self, max: int = None, since: int = None, lang: str = None, cat: str = None, notcat: str = None) -> dict:
+    def trending_podcasts(self, max: int = None, since: int = None, lang: str = None, cat: Union[str, int] = None, notcat: str = None) -> dict:
+        """
+        Returns the most recent podcasts considered "trending" by Podcast Index.  Seems to return in descending order of 'trendScore'
+        
+        Args:
+            max (int, optional): The maximum number of search results to return. The API
+                documentation states a maximum of 1000, but in practice, it seems to be XXX.
+                Defaults to None, in which case the API's default maximum 10 is used.
+            
+            since (int, optional): Return items since the specified epoch timestamp. 
+            
+            lang (str, optional): Specifying a language code (like "en") to return only episodes having that specific language.
+                Multiple languages by accepted by separating them with commas. Also "unknown" accepted (ex. en,es,ja,unknown).
+                Most common 'en' and 'en-us'. (Didn't see an endpoint to access all available languages.)
+                           
+            cat (str or int, optional): Specify you ONLY want podcasts with these categories in the results. Separate multiple 
+            categories with commas. Accepts the category name or ID (or a mixture). 
+           
+            notcat (str or int, optional): Specify to EXCLUDE podcasts with these categories in the results. Separate multiple 
+            categories with commas. Accepts the category name or ID (or a mixture).
+            
+        Returns:
+            dict: The search results, in the form returned by the API.
+        """
+                
         url = "https://api.podcastindex.org/api/1.0" + "/podcasts/trending"
         # "https://api.podcastindex.org/api/1.0/podcasts/trending?max=10&since=1612125785&lang=en&cat=News&notcat=News"
+        
         payload = {}
+        
         if max is not None:
             payload["max"] = max
+        
         if since is not None:
             payload["since"] = since
+        
         if lang is not None:
             payload["lang"] = lang
+        
         if cat is not None:
             payload["cat"] = cat
+        
         if notcat is not None:
             payload["notcat"] = notcat
+        
         response = self._make_request_get_result_helper(url, payload)
-        # save_output_to_json(response, 'recent_eps', 'pi_output_cache/sample_requests_reponses')
+        
         return response
 
     def episode_by_episode_id(self):
@@ -355,10 +386,13 @@ if __name__ == "__main__":
     podcast_index_instance = PodcastIndexService(config.headers)
     json_maker = OutputSaver()
     
-    people_list = ['Gwyneth Paltrow', 'Johnny Depp', 'Elon Musk', 'Primeagen', 'Anna Cramling', 'Dominic Sandbrook', 'Rory Stewart']
-
-    payload = podcast_index_instance.search_by_person("Elon Musk", 900, True)
-    json_maker.save_output_to_json(payload, 'search-by-person', "Elon Musk")
+    # people_list = ['Gwyneth Paltrow', 'Johnny Depp', 'Elon Musk', 'Primeagen', 'Anna Cramling', 'Dominic Sandbrook', 'Rory Stewart']
+    # payload = podcast_index_instance.search_by_person("Elon Musk", 900, True)
+    # json_maker.save_output_to_json(payload, 'search-by-person', "Elon Musk")
+     
+    payload = podcast_index_instance.trending_podcasts(150, lang='en', cat=102)
+    json_maker.save_output_to_json(payload, 'trending-podcasts', 'max-150') 
+     
      
     # TODO so this works great - I need to make sure all the methods are working
 
