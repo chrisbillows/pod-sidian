@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from typing import Dict, Any
+import warnings
 
 import requests
 from dotenv import load_dotenv
@@ -130,6 +131,8 @@ class PodcastIndexService:
             fulltext (bool, optional): Return the full text value of any text fields (ex: description). 
                 If not provided, text field values are truncated to 100 words. If True, the string 
                 'fulltext' is added to the payload. Defaults to False.
+                
+                Note the API requires a str 'fulltext' and not the bool used here.
 
         Returns:
             dict: The search results, in the form returned by the API.
@@ -153,16 +156,51 @@ class PodcastIndexService:
         
         return response
 
-    def search_title(self, query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
+    def search_by_title(self, query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
+        """
+        Searches podcasts by term. Searched fields are title only. 
+        (Use search for title, owner and author). 
+        
+        IN LIMITED TESTING THE SEARCH RESULTS WERE LESS USEFUL THAT 'search'. Use 'search' for now.        
+                
+        The search can be customized with the optional `max`, `fulltext` and `similar` parameters.
+
+        Args:
+            query (str): The term to search for.
+            
+            max (int, optional): The maximum number of search results to return. The API
+                documentation states a maximum of 1000, but in practice, it seems to be 60.
+                Defaults to None, in which case the API's default maximum is used.
+            
+            fulltext (bool, optional): Return the full text value of any text fields (ex: description). 
+                If not provided, text field values are truncated to 100 words. If True, the string 
+                'fulltext' is added to the payload. Defaults to False.
+            
+            similar (bool, optional): Return results for similar.  e.g. perhaps JavaScript for javascript. 
+                Available, although has made little difference in limited testing. Defaults to False.
+
+        Returns:
+            dict: The search results, in the form returned by the API.
+
+        """
+        
+        warnings.warn("The 'search_by_title' method utilise an endpoint that may be unreliable. This method is therefore deprecated and may be removed in a future version", DeprecationWarning)
+                
         url = "https://api.podcastindex.org/api/1.0" + "/search/bytitle"
+        
         payload = {"q": query}
+        
         if max is not None:
             payload["max"] = max
+        
         if fulltext:
-            payload["fulltext"] = True  # in search by title this requires the str 'fulltext'
+            payload["fulltext"] = True  # in search this requires the str 'fulltext', not a bool
+        
         if similar:
             payload['similar'] = True
+        
         response = self._make_request_get_result_helper(url, payload)
+        
         return response
 
     def search_person(self, query: str, max: int = None, fulltext: bool = False) -> dict:
@@ -233,6 +271,20 @@ class PodcastIndexService:
     def new_feeds(self):
         # or use feed data which is the same but works on PI date, rather than the podcasts internal timestamp
         pass
+    
+    def multi_search_multi_endpoints(self, searches: list, json_maker: OutputSaver) -> bool:
+        for s in searches:
+            try:
+                s_filename = s.replace(' ', '_')
+                search_payload = self.search(s)
+                search_by_title_payload = self.search_by_title(s)
+                json_maker.save_output_to_json(search_payload, f"search_{s_filename}")
+                json_maker.save_output_to_json(search_by_title_payload, f"search_by_title{s_filename}")
+                print(f"JSONS for {s} created.")
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                return False
+        return True
 
     def fetch_all(self):
 
@@ -255,18 +307,15 @@ class PodcastIndexService:
         result.raise_for_status()
         result_dict = json.loads(result.text)
         return result_dict
-    
-
 
 
 if __name__ == "__main__":
     
     config = PodcastIndexConfig()
-
     podcast_index_instance = PodcastIndexService(config.headers)
-    search = podcast_index_instance.search("film", 150, True)
-   
-    print(search)
+    json_maker = OutputSaver()
+
+
      
     # TODO so this works great - I need to make sure all the methods are working
 
