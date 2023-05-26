@@ -9,13 +9,21 @@ from dotenv import load_dotenv
 
 
 class OutputSaver:
-    """
-    A class to save Podcast Index API outputs to the cache directory.
     
-    The class paremeters are 
-    a) output directory with a default of "podcast_index_outputs"
-    b) output sub directory with a default of "temp"
-           
+    """
+    A class to save Podcast Index API outputs.
+    The root directory is "cache" and is not alterable.
+    
+    Attributes:
+        output_main_dir (str): Main directory for output files. The full path will be 
+            "cache/output_main_dir". Default is "podcast_index_outputs".
+        output_sub_dir (str): Subdirectory for output files. The full path will be 
+            "cache/output_main_dir/output_sub_dir". Default is "temp".
+
+    Args:
+        output_main_dir (str, optional): Main directory for output files. Defaults to 
+            "podcast_index_outputs".
+        output_sub_dir (str, optional): Subdirectory for output files. Defaults to "temp".
     """
 
     def __init__(self, output_main_dir="podcast_index_outputs", output_sub_dir="temp"):
@@ -46,11 +54,19 @@ class OutputSaver:
             json.dump(payload, f, indent=4)
 
 
-
 class PodcastIndexConfig:
     
     """
-    A class to create the required headers to access the API.
+    A class to create the required headers to access the Podcast Index API.
+    
+    The class uses environment variables to fetch API credentials and uses them to create
+    the headers required for API requests.
+
+    Attributes:
+        api_key (str): API key retrieved from the environment variables. 
+        api_secret (str): API secret retrieved from the environment variables.
+        headers (dict): The headers to be used for API requests, created using 
+            the API key and secret.
     """   
     
     def __init__(self) -> None:
@@ -79,8 +95,18 @@ class PodcastIndexConfig:
 class PodcastIndexService:
     
     """
-    A class to handle API requests to selected Podcast Index endpoints.
+    A class to handle API requests to Podcast Index endpoints.
+
+    Class methods are organised in the same order as Podcast Index docs.
+    Note that not all API available endpoints are covered.
+
+    Attributes:
+        headers (dict): A PodcastIndexConfig.headers instance variable. 
+
+    Args:
+        headers (dict): The headers used for API requests.
     """
+   
     def __init__(self, headers) -> None:
         self.headers = headers
 
@@ -93,7 +119,6 @@ class PodcastIndexService:
         if fulltext:
             payload["fulltext"] = 'fulltext'   # in search by title this is changed to a bool
         response = self._make_request_get_result_helper(url, payload)
-        # save_output_to_json(response, 'search', 'pi_output_cache/sample_requests_reponses')
         return response
 
     def search_title(self, query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
@@ -206,28 +231,20 @@ class PodcastIndexService:
 
 if __name__ == "__main__":
     
-    # config = PodcastIndexConfig()
+    config = PodcastIndexConfig()
 
-    # podcast_index_instance = PodcastIndexService(config.headers)
+    podcast_index_instance = PodcastIndexService(config.headers)
+    search = podcast_index_instance.search("film", 150, True)
    
-    # search = podcast_index_instance.search("True Crime", 500, True)
-    # catergories = podcast_index_instance.catergories()
-
-    # json_maker = OutputSaver()
-
-    # json_maker.save_output_to_json(search, 'search')
-    # json_maker.save_output_to_json(catergories, 'catergories')
+    print(search)
      
     # TODO so this works great - I need to make sure all the methods are working
 
 
-    config = PodcastIndexConfig()
-    podcast_index_instance = PodcastIndexService(config.headers)
-    podcast_index_instance.fetch_all()
+    # config = PodcastIndexConfig()
+    # podcast_index_instance = PodcastIndexService(config.headers)
+    # podcast_index_instance.fetch_all()
     
   
-    # podcast_index_instance.fetch_all()
-    # print("All API examples fetched and stored")
-   
 
     
