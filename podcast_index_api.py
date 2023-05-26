@@ -125,7 +125,7 @@ class PodcastIndexService:
         # save_output_to_json(response, 'search_person', 'pi_output_cache/sample_requests_reponses')
         return response
 
-    def catergories(self):
+    def categories(self):
         url = "https://api.podcastindex.org/api/1.0" + "/categories/list"
         payload = {}
         response = self._make_request_get_result_helper(url, payload) 
@@ -180,13 +180,18 @@ class PodcastIndexService:
         pass
 
     def fetch_all(self):
-        json_maker = OutputSaver()
-        
-        self.search("Python", max=3, fulltext='fulltext')
-        self.search_title("JavaScript", max=3, fulltext=True, similar=True)
-        self.search_person("Johnny Depp", max=1000, fulltext=True)
-        self.catergories()
+
+        payloads = {
+            'search': self.search("True Crime",500, True),
+            'categories': self.categories()
+        }
+
+        json_maker = OutputSaver(output_sub_dir="sample_set")
+
+        for method_name, payload in payloads.items():
+            json_maker.save_output_to_json(payload, method_name)
         print("Sample API calls extracted")
+    
         return True
 
     def _make_request_get_result_helper(self, url, payload):
@@ -196,38 +201,30 @@ class PodcastIndexService:
         result_dict = json.loads(result.text)
         return result_dict
     
-        # CHAT GPT SUGGESTION to save many payloads 
-        # config = PodcastIndexConfig()
 
-        # podcast_index_instance = PodcastIndexService(config.headers)
-    
-        # payloads = {
-        #     'search': podcast_index_instance.search("True Crime",500, True),
-        #     'categories': podcast_index_instance.categories(),
-        #     # Add more payloads here as needed
-        # }
-
-        # json_maker = OutputSaver()
-
-        # for method_name, payload in payloads.items():
-        #     json_maker.save_output_to_json(payload, method_name)
 
 
 if __name__ == "__main__":
-    config = PodcastIndexConfig()
+    
+    # config = PodcastIndexConfig()
 
-    podcast_index_instance = PodcastIndexService(config.headers)
+    # podcast_index_instance = PodcastIndexService(config.headers)
    
-    search = podcast_index_instance.search("True Crime", 500, True)
-    catergories = podcast_index_instance.catergories()
+    # search = podcast_index_instance.search("True Crime", 500, True)
+    # catergories = podcast_index_instance.catergories()
 
-    json_maker = OutputSaver()
+    # json_maker = OutputSaver()
 
-    json_maker.save_output_to_json(search, 'search')
-    json_maker.save_output_to_json(catergories, 'catergories')
+    # json_maker.save_output_to_json(search, 'search')
+    # json_maker.save_output_to_json(catergories, 'catergories')
      
     # TODO so this works great - I need to make sure all the methods are working
 
+
+    config = PodcastIndexConfig()
+    podcast_index_instance = PodcastIndexService(config.headers)
+    podcast_index_instance.fetch_all()
+    
   
     # podcast_index_instance.fetch_all()
     # print("All API examples fetched and stored")
