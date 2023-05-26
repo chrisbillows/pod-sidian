@@ -40,6 +40,9 @@ class Display:
     def main_menu_full(self):
         self._clear_console()
         print("---------MAIN MENU--------")
+        #! THIS APPROACH IS IDEAL FOR WHEN I WANT TO MAKE THE HEADING USING TERMINAL WIDTH
+        # def headline(text, border='-', width=50):
+        #     return f" {text} ".center(width, border)
         print()
         print("TRACKED PODCASTS")
         print("----------------")

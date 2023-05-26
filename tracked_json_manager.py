@@ -118,7 +118,8 @@ class TrackedJsonManager:
         formatted_datetime = current_datetime.strftime("%Y%m%d %H%M")
         return formatted_datetime
     
-json_manager = TrackedJsonManager()
-current_json = json_manager.get_current_json()
-print(current_json)
-print(json_manager.write_new_current_json({"podcasts being tracked": [1, 2, 3]}))
+if __name__ == "__main__":
+    json_manager = TrackedJsonManager()
+    current_json = json_manager.get_current_json()
+    print(current_json)
+    

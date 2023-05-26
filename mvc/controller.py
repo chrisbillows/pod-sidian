@@ -4,6 +4,18 @@ import time
 import json
 
 
+class EpisodeGetter:
+    
+    def __init__(self, podcast_id) -> None:
+        self.podcast_id = podcast_id
+
+    # TODO so we have a great shape for this class in Chat GPT as EpisodeGetter class.
+    #      the first question is handling requests
+    #      are we building them inside these classes, or should they be in their own module?
+
+
+
+
 # ---------------------------------------------------------
 #  MENU 0 - MAIN MENU
 # ---------------------------------------------------------

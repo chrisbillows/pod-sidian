@@ -88,6 +88,7 @@ def search(query: str, max: int = None, fulltext: bool = False) -> dict:
     
     response = make_request_get_result_helper(url, payload)
     save_output_to_json(response, 'search', 'pi_output_cache/sample_requests_reponses')
+    return response
 
 def search_title(query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
       
@@ -121,6 +122,7 @@ def search_person(query: str, max: int = None, fulltext: bool = False) -> dict:
 
     response = make_request_get_result_helper(url, payload) 
     save_output_to_json(response, 'search_person', 'pi_output_cache/sample_requests_reponses')
+
 
 def catergories():
         
@@ -202,14 +204,25 @@ def trending_pods(max: int = None, since: int = None, lang: str = None, cat: str
     response = make_request_get_result_helper(url, payload)
     save_output_to_json(response, 'recent_eps', 'pi_output_cache/sample_requests_reponses')
 
-
-def eps_by_feed_id():
-    # may want to use eps recent
-    # seems to duplicate functionality but that allows a cut off by EPISODE
-    pass
-
 def ep_by_ep_id():
     pass
+
+def eps_by_feed_id(query: str, max: int = None, fulltext: bool = False, similar: bool = False) -> dict:
+    # may want to use eps recent
+    # seems to duplicate functionality but that allows a cut off by EPISODE
+      
+    url = "https://api.podcastindex.org/api/1.0" + "/episodes/byfeedid"
+
+    payload = {"id": query}
+    if max is not None:
+        payload["max"] = max
+    if fulltext:
+        payload["fulltext"] = True  # in search by title this requires the str 'fulltext'
+    if similar:
+        payload['similar'] = True
+    response = make_request_get_result_helper(url, payload)
+    # save_output_to_json(response, 'ep_by_ep_id', 'pi_output_cache/sample_requests_reponses')
+    return response
 
 def eps_recent():
     pass
@@ -221,7 +234,6 @@ def feeds_recent():
 def new_feeds():
     # or use feed data which is the same but works on PI date, rather than the podcasts internal timestamp
     pass
-
 
 
 def fetch_all():
@@ -236,7 +248,7 @@ def fetch_all():
     return True
 
 # fetch_all()
-
+print(eps_by_feed_id(742305))
 
 
 
