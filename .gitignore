@@ -5,7 +5,7 @@ __pycache__/
 venv/
 .DS_Store
 .env
-pi_output_cache/
+cache/
 scratch.py
 zzOLD/
 .vscode/
