@@ -106,7 +106,13 @@ class ViewTrackedPodcastsHandler:
 
     def tracked_pods_handler(self, choice=None, max_attempts=None) -> str:
         """
-        Checks if tracked podcasts is an empty list. If not, displays tracked podcasts and
+        Checks if tracked podcasts is an empty list. If not, displays tracked podcasts 
+        and
+        
+        Args:
+
+        
+        
         """
         if self._tracked_pods_empty():
             self.display.view_tracked_podcasts_empty()
@@ -272,15 +278,20 @@ class SearchByTitleHandler:
     """
     Class to handle searching by title for the user.
 
-    The class is structured around a sub-menu handler from which all other menus are accessible, for maintaining flexibility
-    for re-design.
+    The class is structured around a sub-menu handler from which all other menus are 
+    accessible, for maintaining flexibility for re-design.
 
-    To consider is if some(all?) of these methods should be classes in their own right - depending on how complex movements
-    between other catergories of menu need to be.  e.g. it might turn out to be logical to run searches from inside other
-    deeply nested menus.  ALSO - when building the menus for episode downloader or podcast tracker, we might find they are
-    needed by many classes.  Will it make sense to end up with only one class that has a sub menu handler?
+    To consider is if some(all?) of these methods should be classes in their own right -
+    depending on how complex movements between other catergories of menu need to be.  
+    
+    e.g. it might turn out to be logical to run searches from inside other deeply nested
+    menus.  
+    
+    ALSO - when building the menus for episode downloader or podcast tracker, we might 
+    find they are needed by many classes.  Will it make sense to end up with only one 
+    class that has a sub menu handler?
+    
     """
-
     valid_choices = {
         "m": "main_menu",
         "q": "main_menu_goodbye",
@@ -295,11 +306,14 @@ class SearchByTitleHandler:
     ) -> str:  # return a valid menu to the controller
         """
         Effectively the controller for this set of sub-menus.
-        The order if menus is primary path through the menus; it is the order they would be called if they weren't
-        structured in a while loop.
-        The while loop continues to allow for ultimate flexibility in changing or introducing user paths between menus.
-        """
 
+        The order if menus is primary path through the menus; it is the order they would
+        be called if they weren't structured in a while loop.
+        
+        The while loop continues to allow for ultimate flexibility in changing or 
+        introducing user paths between menus.
+        
+        """
         next_sub_menu = "_search_by_title_search_term_getter"
         while True:
             if next_sub_menu == "_search_by_title_search_term_getter":
@@ -328,9 +342,12 @@ class SearchByTitleHandler:
 
     def _search_by_title_search_term_getter(self) -> str:  # return a valid sub menu:
         """
-        Display request to user for search term.  Get the search term and checks if the user is indicating they want
-        a different menu. If so, the search term is reset.
-        If not, the search term remains accessible to the class and the results menu is selected.
+        Display request to user for search term.  Get the search term and checks if the 
+        user is indicating they want a different menu. If so, the search term is reset.
+        
+        If not, the search term remains accessible to the class and the results 
+        menu is selected.
+                
         """
         self.display.search_by_title_enter_search_term()
         self.search_choice = input(": ")
@@ -346,11 +363,18 @@ class SearchByTitleHandler:
     def _search_by_title_search_results_handler(self) -> str:
         """
         Takes the search term and queries the API.
+        
         Creates all required display variables, usable by the entire class.
-        If the search result is empty - tells user and next_menu is 'empty_search_options'
+        
+        If the search result is empty - tells user and next_menu is 
+        'empty_search_options'.
+        
         If the search result is juicy, it display the search results.
-        It takes a user choice, and checks its valid or another menu. If it's not, then it creates an instance
-        variable for the valid podcast choice and returns the next required menu.
+        
+        It takes a user choice, and checks its valid or another menu. If it's not, then 
+        it creates an instance variable for the valid podcast choice and returns the 
+        next required menu.
+        
         """
         self.search_results = self._get_search_results()
         self._generate_search_display_variables()
@@ -379,7 +403,8 @@ class SearchByTitleHandler:
                         return next_sub_menu
                 except (
                     ValueError
-                ):  # if choice cannot be converted to an int, do nothing and proceed to next block
+                ):  # if choice cannot convert to an int, do nothing and 
+                    # proceed to next block
                     pass
 
                 if choice in self.valid_choices:
@@ -391,21 +416,28 @@ class SearchByTitleHandler:
 
     def _search_by_title_podcast_detail_handler(self):
         """
-        Once a user has selected a podcast from the search results - this displays a detailed view of the information.
+        Once a user has selected a podcast from the search results - this displays a 
+        detailed view of the information.
 
-        It also calls the class method to get episodes for the podcast, which it stores as an instance variable to be
-        available for further use (for example by the episode downloader).
+        It also calls the class method to get episodes for the podcast, which it stores 
+        as an instance variable to be available for further use (for example by the 
+        episode downloader).
 
-        It then asks the users for their choice how to proceed - forking into two new classes, the tracked podcasts and
-        episode download functionalities.
+        It then asks the users for their choice how to proceed - forking into two new 
+        classes, the tracked podcasts and episode download functionalities.
+        
         """
         self.selected_podcast_details = self.search_results[self.selected_podcast]
         self.display.search_by_title_display_selected_podcast_detail(
             self.selected_podcast_details
         )
 
-        # TODO this displays the detail of the podcast. We need to a) get the episodes and b) give the options
-        #      which are 1) track the podcast 2) download episodes (+ new search, main menu and secret quit)
+        # TODO this displays the detail of the podcast. We need to: 
+        #           a) get the episodes 
+        #           b) give the options
+        #                  which are 1) track the podcast 
+        #                            2) download episodes 
+        #                               (+ new search, main menu and secret quit)
         print()
         print("This is as far as we got! Returning to main menu.")
         print()
@@ -414,12 +446,19 @@ class SearchByTitleHandler:
 
     def _get_search_results(self) -> dict:
         """
-        Uses the class instance variable self.search_choice for the searchByTitle API call.
+        Uses the class instance variable self.search_choice for the searchByTitle API 
+        call.
+        
         Also contains a commented out version to call a cached response for testing.
+        
         """
 
         # dummy api call
-        file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/cache/podcast_index_outputs/sample_set/001_search.json"
+        file_path = (
+        "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/"
+        "pod-sidian/cache/podcast_index_outputs/sample_set/"
+        "001_search.json"
+        )
         with open(file_path, "r") as json_file:
             api_response = json.load(json_file)
             # api_response = []
@@ -438,14 +477,17 @@ class SearchByTitleHandler:
 
     def _generate_search_display_variables(self) -> bool:
         """
-        Uses the instance variable self.search_results and creates all required display variables.
+        Uses the instance variable self.search_results and creates all required 
+        display variables.
+        
         E.g.
         - an index/enumerated version of the search results for displaying indexes
         - a total of the valid indexes for use in ranges like "pick 1 - {valid_indexes}"
         - valid indexes list, for use when checking a user selection is valid
 
-        This is slightly risky - calling methods relying on these variables without having called this method
-        will throw errors.
+        This is slightly risky - calling methods relying on these variables without 
+        having called this method will throw errors.
+        
         """
         self.idx_search_results = list(enumerate(self.search_results, 1))
         self.valid_indexes = len(self.search_results)
@@ -594,8 +636,10 @@ class AllEpisodesMentioningAPersonHandler:
 class Controller:
 
     """
-    Main controller class to run the programme.  A while loop built around a next_menu variable to allow easily allow
-    any menu to lead to any other menu - maximum flexible for adding/changing/evovling the UX."
+    Main controller class to run the programme.  A while loop built around a next_menu 
+    variable to allow easily allow any menu to lead to any other menu - maximum flexible
+    for adding/changing/evovling the UX."
+    
     """
 
     def __init__(self):
@@ -665,7 +709,8 @@ class Controller:
 
             else:
                 print(
-                    "The menu returned by that method is not handled by controller.run, bozo!"
+                    "The menu returned by that method is not handled by controller.run," 
+                    "bozo!"
                 )
                 break
 
