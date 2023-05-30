@@ -3,6 +3,8 @@ from mvc_model import Model, DatabaseManager
 import time
 import json
 
+from podcast_index_api import PodcastIndexConfig, PodcastIndexService
+
 
 class EpisodeGetter:
     def __init__(self, podcast_id) -> None:
@@ -165,8 +167,10 @@ class StopTrackingPodcastHandler:
 
     # TODO currently display lists and returns to main menu after any key enter.
     # TODO deletion functionality needs to come from list_manager.py and be rewritten
-    # TODO QUESTION is how we are handling valid index choices - for both checking and especially for returning menu options
-    # TODO e.g. we can't do next_menu = self.valid_choices[choice] because 1-x aren't there - 1-x need to trigger the podcast deletion loops
+    # TODO QUESTION is how we are handling valid index choices - for both checking and 
+    #   especially for returning menu options
+    # TODO e.g. we can't do next_menu = self.valid_choices[choice] because 1-x 
+    # aren't there - 1-x need to trigger the podcast deletion loops
     # TODO although I think that is pretty easy to add (but will it impact pytest?)
 
     def stop_tracking_podcast_handler(self, choice=None, max_attempts=None) -> str:
@@ -326,25 +330,24 @@ class SearchByTitleHandler:
                 next_sub_menu = self._search_by_title_podcast_detail_handler()
 
             elif next_sub_menu == "main_menu":
-                print("Sub-menu was triggered to main menu. Going there now")
+                print("TEMP MSG: Sub-menu was triggered to main menu. Going there now")
                 time.sleep(2)
                 return "main_menu"
 
             elif next_sub_menu == "main_menu_goodbye":
-                print("Sub-menu was triggered to goodbye. Going there now")
+                print("TEMP MSG: Sub-menu was triggered to goodbye. Going there now")
                 time.sleep(2)
                 return "main_menu_goodbye"
 
             else:
-                print("Some kind of error has occured... returning to main menu")
+                print("TEMP MSG: Some kind of error has occured... returning to main menu")
                 time.sleep(2)
                 return "main_menu"
 
     def _search_by_title_search_term_getter(self) -> str:  # return a valid sub menu:
         """
-        Display request to user for search term.  Get the search term and checks if the 
+        Display request to user for search term. Get the search term and checks if the 
         user is indicating they want a different menu. If so, the search term is reset.
-        
         If not, the search term remains accessible to the class and the results 
         menu is selected.
                 
@@ -355,7 +358,7 @@ class SearchByTitleHandler:
         if self.search_choice in self.valid_choices.keys():
             next_sub_menu = self.valid_choices[self.search_choice]
             self.search_choice = ""
-            return next_sub_menu  #! this does return to main menu
+            return next_sub_menu  # this does return to main menu
         else:
             next_sub_menu = "_search_by_title_search_results_handler"
             return next_sub_menu
@@ -380,14 +383,13 @@ class SearchByTitleHandler:
         self._generate_search_display_variables()
 
         if self._search_results_empty(self.search_results):
-            self.display.search_by_title_results_empty()
-            # choice = ''
+            self.display.search_by_title_results_empty(self.search_choice)
+            self.search_choice = ''
             # no options for now, just bounce back into search
             next_sub_menu = "_search_by_title_search_term_getter"
             return next_sub_menu
 
         else:
-            self._generate_search_display_variables()
             self.display.search_by_title_results(
                 self.search_choice, self.idx_search_results, self.valid_indexes
             )
@@ -396,7 +398,7 @@ class SearchByTitleHandler:
                 choice = input(": ")
 
                 try:
-                    choice_as_int = int(choice)
+                    choice_as_int = int(choice) 
                     if choice_as_int in self.valid_indexes_list:
                         self.selected_podcast = choice_as_int
                         next_sub_menu = "_search_by_title_podcast_detail_handler"
@@ -427,11 +429,12 @@ class SearchByTitleHandler:
         classes, the tracked podcasts and episode download functionalities.
         
         """
-        self.selected_podcast_details = self.search_results[self.selected_podcast]
+        temp = self.idx_search_results[self.selected_podcast-1][1]
+        self.selected_podcast_details = temp
+
         self.display.search_by_title_display_selected_podcast_detail(
             self.selected_podcast_details
         )
-
         # TODO this displays the detail of the podcast. We need to: 
         #           a) get the episodes 
         #           b) give the options
@@ -453,16 +456,20 @@ class SearchByTitleHandler:
         
         """
 
-        # dummy api call
-        file_path = (
-        "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/"
-        "pod-sidian/cache/podcast_index_outputs/sample_set/"
-        "001_search.json"
-        )
-        with open(file_path, "r") as json_file:
-            api_response = json.load(json_file)
-            # api_response = []
-        # real api call
+        #! DUMMY API CALL
+        # file_path = (
+        # "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/"
+        # "pod-sidian/cache/podcast_index_outputs/sample_set/"
+        # "001_search.json"
+        # )
+        # with open(file_path, "r") as json_file:
+        #     api_response = json.load(json_file)
+        #     # api_response = []
+        #! REAL API CALL
+        config = PodcastIndexConfig()
+        podcast_index_instance = PodcastIndexService(config.headers)
+        api_response = podcast_index_instance.search(self.search_choice)
+                
         # use self.search_term
         search_results = api_response["feeds"]
         return search_results
@@ -706,7 +713,8 @@ class Controller:
             # MENU 9 - ALL EPISODES MENTIONING A PERSON
             elif next_menu == "all_episodes_mentioning_a_person":
                 handler = AllEpisodesMentioningAPersonHandler()
-
+                next_menu = handler.all_episodes_mentioning_a_person_handler()
+                
             else:
                 print(
                     "The menu returned by that method is not handled by controller.run," 

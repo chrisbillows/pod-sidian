@@ -32,6 +32,7 @@ class Display:
             )
         else:
             valid_idx_joined = f"{valid_idx_strs[0]} - {valid_idx_strs[-1]}"
+        return valid_idx_joined
 
     # ---------------------------------------------------------
     #                   MENU 0 - MAIN MENU
@@ -125,16 +126,18 @@ class Display:
             print(f"{idx}. {pod['title'].upper()}")
         print()
         print(
-            f"To delete a podcast, select {self._create_index_choice_sentence(valid_indexes)}: "
+            "To delete a podcast, select "
+            f"{self._create_index_choice_sentence(valid_indexes)}: "
+            "NOT BUILT YET"
         )
         print()
         print("Enter 'm' to return to main menu.")
 
     def stop_tracking_a_podcast_invalid(self):
         print()
-        print("This will be the invalid option")
+        print(">>> INVALID CHOICE")
         print()
-        print("Only 'm' can free you")
+        print("Functionality not built yet. Only 'm' can free you!")
 
     def stop_tracking_a_podcast_user_confirmation(self):
         print("Are you sure you want to delete {PODCAST}")
@@ -227,9 +230,12 @@ class Display:
         self._clear_console()
         print("---------SEARCH PODCASTS BY TITLE--------")
         print()
-        print(f"Your search for {search_term} returned no results.")
+        print("Oh no!")
+        print(f'Your search for "{search_term}" returned no results.')
         print()
         print("Please try again")
+        print()
+        print("Returning to search menu in 3 seconds...")  
         time.sleep(3)
 
     def search_by_title_display_selected_podcast_detail(self, selected_podcast_details):
