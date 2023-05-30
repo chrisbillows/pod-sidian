@@ -1,5 +1,5 @@
-from view import Display
-from model import Model, DatabaseManager
+from mvc_view import Display
+from mvc_model import Model, DatabaseManager
 import time
 import json
 
@@ -384,7 +384,7 @@ class SearchByTitleHandler:
             """
             
             # dummy api call
-            file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/pi_output_cache/sample_api_responses/001_search.json"
+            file_path = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/cache/podcast_index_outputs/sample_set/001_search.json"
             with open(file_path, 'r') as json_file:
                 api_response = json.load(json_file)
                 #api_response = []

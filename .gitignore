@@ -9,3 +9,4 @@ cache/
 scratch.py
 zzOLD/
 .vscode/
+.ruff_cache/
