@@ -6,15 +6,6 @@ import json
 from podcast_index_api import PodcastIndexConfig, PodcastIndexService
 
 
-class EpisodeGetter:
-    def __init__(self, podcast_id) -> None:
-        self.podcast_id = podcast_id
-
-    # TODO so we have a great shape for this class in Chat GPT as EpisodeGetter class.
-    #      the first question is handling requests
-    #      are we building them inside these classes, or should they be in their own module?
-
-
 # ---------------------------------------------------------
 #  MENU 0 - MAIN MENU
 # ---------------------------------------------------------
@@ -164,14 +155,19 @@ class StopTrackingPodcastHandler:
         self.tracked_pods = self.db["podcasts being tracked"]
         self.idx_tracked_pods = list(enumerate(self.tracked_pods, 1))
         self.valid_indexes = len(self.tracked_pods)
+    
+    # TODO supplanting this, lets add active/inactive status for deletion func.
+    #       We have to add a lot more for the transcription stuff anyway
+    #       And when it comes to keeping the transcript side in sync this will be
+    #       very helpful.     
 
-    # TODO currently display lists and returns to main menu after any key enter.
+    # TODO currently displays list and returns to main menu after any key enter.
     # TODO deletion functionality needs to come from list_manager.py and be rewritten
     # TODO QUESTION is how we are handling valid index choices - for both checking and 
     #   especially for returning menu options
     # TODO e.g. we can't do next_menu = self.valid_choices[choice] because 1-x 
-    # aren't there - 1-x need to trigger the podcast deletion loops
-    # TODO although I think that is pretty easy to add (but will it impact pytest?)
+    #     aren't there - 1-x need to trigger the podcast deletion loops
+    # TODO although I think that is pretty easy to add
 
     def stop_tracking_podcast_handler(self, choice=None, max_attempts=None) -> str:
         attempts = 0
@@ -379,7 +375,7 @@ class SearchByTitleHandler:
         next required menu.
         
         """
-        self.search_results = self._get_search_results()
+        self.search_results = self._api_caller_get_search_results()
         self._generate_search_display_variables()
 
         if self._search_results_empty(self.search_results):
@@ -441,21 +437,36 @@ class SearchByTitleHandler:
         #                  which are 1) track the podcast 
         #                            2) download episodes 
         #                               (+ new search, main menu and secret quit)
+        
+        self.episodes = self._api_caller_get_feed_episodes()
+        feed_id = self.selected_podcast_details['id']
+        all_episodes = self.selected_podcast_details['episodeCount']
+        
+        for episode in self.episodes:
+            print(episode['title'])
+            
+        # TODO episodes working - and it's getting them all.  
+        # need to handle the displaying
+        
+        # TODO consider complexity of this class - way too high. But how to strip it 
+        # out?  And refactor again before we actually finish some functionality?
+        
         print()
         print("This is as far as we got! Returning to main menu.")
         print()
         time.sleep(5)
         return "main_menu"
 
-    def _get_search_results(self) -> dict:
+    def _api_caller_get_search_results(self) -> dict:
         """
         Uses the class instance variable self.search_choice for the searchByTitle API 
         call.
         
         Also contains a commented out version to call a cached response for testing.
         
+        Called by _search_by_title_search_results_handler method.
+        
         """
-
         #! DUMMY API CALL
         # file_path = (
         # "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/"
@@ -468,11 +479,35 @@ class SearchByTitleHandler:
         #! REAL API CALL
         config = PodcastIndexConfig()
         podcast_index_instance = PodcastIndexService(config.headers)
-        api_response = podcast_index_instance.search(self.search_choice)
-                
-        # use self.search_term
+
+        api_response = podcast_index_instance.search(self.search_choice, fulltext=True)
         search_results = api_response["feeds"]
+
         return search_results
+
+
+    def _api_caller_get_feed_episodes(self) -> dict:
+        """
+        Private method called by _search_by_title_podcast_detail_handler to get episodes
+        for displaying in podcast detail. 
+        
+        """
+                
+        #! DUMMY API CALL
+        
+        #! REAL API CALL
+        feed_id = self.selected_podcast_details['id']
+        total_episode_count = self.selected_podcast_details['episodeCount']
+        
+        config = PodcastIndexConfig()
+        podcast_index_instance = PodcastIndexService(config.headers)
+        
+        api_response = podcast_index_instance.episodes_by_feed_id(
+            feed_id, max=total_episode_count, fulltext=True)
+                    
+        episodes = api_response["items"]
+
+        return episodes
 
     def _search_results_empty(self, search_results: dict) -> bool:
         """
