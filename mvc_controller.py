@@ -1,7 +1,8 @@
 from mvc_view import Display
-from mvc_model import Model, DatabaseManager
+from mvc_model import Model, DatabaseManager, Podcast
 import time
 import json
+from typing import List, Dict, Any
 
 from podcast_index_api import PodcastIndexConfig, PodcastIndexService
 
@@ -425,12 +426,16 @@ class SearchByTitleHandler:
         classes, the tracked podcasts and episode download functionalities.
         
         """
-        temp = self.idx_search_results[self.selected_podcast-1][1]
-        self.selected_podcast_details = temp
-
+        pod_feed = self.idx_search_results[self.selected_podcast-1][1]
+        pod_feed_id = pod_feed['id']
+        pod_total_ep_count = pod_feed['episodeCount']
+        
+        pod_eps = self._api_caller_get_feed_episodes(pod_feed_id, pod_total_ep_count)
+        self.selected_podcast = Podcast(pod_feed, pod_eps)
+        
         self.display.search_by_title_display_selected_podcast_detail(
-            self.selected_podcast_details
-        )
+            self.selected_podcast)
+        
         # TODO this displays the detail of the podcast. We need to: 
         #           a) get the episodes 
         #           b) give the options
@@ -438,13 +443,8 @@ class SearchByTitleHandler:
         #                            2) download episodes 
         #                               (+ new search, main menu and secret quit)
         
-        self.episodes = self._api_caller_get_feed_episodes()
-        feed_id = self.selected_podcast_details['id']
-        all_episodes = self.selected_podcast_details['episodeCount']
         
-        for episode in self.episodes:
-            print(episode['title'])
-            
+                    
         # TODO episodes working - and it's getting them all.  
         # need to handle the displaying
         
@@ -486,7 +486,7 @@ class SearchByTitleHandler:
         return search_results
 
 
-    def _api_caller_get_feed_episodes(self) -> dict:
+    def _api_caller_get_feed_episodes(self, feed_id, total_ep_count) -> dict:
         """
         Private method called by _search_by_title_podcast_detail_handler to get episodes
         for displaying in podcast detail. 
@@ -496,14 +496,11 @@ class SearchByTitleHandler:
         #! DUMMY API CALL
         
         #! REAL API CALL
-        feed_id = self.selected_podcast_details['id']
-        total_episode_count = self.selected_podcast_details['episodeCount']
-        
         config = PodcastIndexConfig()
         podcast_index_instance = PodcastIndexService(config.headers)
         
         api_response = podcast_index_instance.episodes_by_feed_id(
-            feed_id, max=total_episode_count, fulltext=True)
+            feed_id, max=total_ep_count, fulltext=True)
                     
         episodes = api_response["items"]
 

@@ -7,6 +7,46 @@ from typing import List, Dict, Any
 class Model:
     pass
 
+class Podcast:
+    """
+    A class to represent a podcast with collected data from Podcast Index.
+    
+    Possibly init required attributes here, but currently no need(??)    
+    
+    BEWARE - the output for podcast/feeds may vary from endpoint to endpoint.
+    
+    This has been tested with "/search/byterm" only.
+    
+    """
+    
+    def __init__(
+        self, feed_raw_output: Dict[str, Any], 
+        episodes_raw_output: List[Dict[str, Any]]
+        ) -> None:
+        
+        self.feed_raw_output = feed_raw_output
+        self.episodes_raw_output = episodes_raw_output
+        
+        self.title = feed_raw_output['title']
+        self.description = feed_raw_output["description"]
+        self.feed_id = feed_raw_output['id']
+        self.itunes_id = feed_raw_output['itunesId']
+        self.link_url = feed_raw_output['link']
+        self.rss_url = feed_raw_output['url']
+        self.episodes_count = feed_raw_output['episodeCount']
+        self.language = feed_raw_output['language']
+        self.catergories_str = self._categories_to_str(feed_raw_output['categories'])
+        self.newest_item_pub = feed_raw_output['newestItemPubdate']
+        self.last_crawl = feed_raw_output['lastCrawlTime']
+        self.last_parse = feed_raw_output['lastParseTime']
+        self.last_good = feed_raw_output['lastGoodHttpStatusTime']
+        self.last_feed_update = feed_raw_output['lastUpdateTime']
+       
+    def _categories_to_str(self, categories): 
+        cat_stringed = ", ".join(f"{k} - {v}" for k, v in categories.items())
+        return cat_stringed
+
+
 
 class DatabaseManager:
     def __init__(self):

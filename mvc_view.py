@@ -2,7 +2,8 @@ import os
 import platform
 import time
 import datetime
-
+from typing import Any, Dict
+from mvc_model import Podcast
 
 class Display:
     def __init__(self) -> None:
@@ -238,42 +239,45 @@ class Display:
         print("Returning to search menu in 3 seconds...")  
         time.sleep(3)
 
-    def search_by_title_display_selected_podcast_detail(self, selected_podcast_details):
+    def search_by_title_display_selected_podcast_detail(
+        self,
+        selected_podcast: Podcast
+        ):
         print("--------SELECTED PODCAST DETAILS--------")
-        categories_to_str = lambda categories: ", ".join(
-            f"{k} - {v}" for k, v in categories.items()
-        )
-        print(selected_podcast_details["title"].upper())
-        print(selected_podcast_details["description"])
-        print(f"\nFeed_ID: {selected_podcast_details['id']}")
-        print(f"itunes_ID: {selected_podcast_details['itunesId']}")
-        print(f"Link: {selected_podcast_details['link']} ")
-        print(f"RSS: {selected_podcast_details['url']} ")
-        print(f"Episodes: {selected_podcast_details['episodeCount']} ")
-        print(f"Language: {selected_podcast_details['language']} ")
+        print()
+        print(selected_podcast.title.upper())
+        print(selected_podcast.description)
+        print(f"\nFeed_ID: {selected_podcast.feed_id}")
+        print(f"itunes_ID: {selected_podcast.itunes_id}")
+        print(f"Link: {selected_podcast.link_url}")
+        print(f"RSS: {selected_podcast.rss_url} ")
+        print(f"Episode Count: {selected_podcast.episodes_count} ")
+        print(f"Language: {selected_podcast.language} ")
         print(
-            f"Categories: {categories_to_str(selected_podcast_details['categories'])}"
+            f"Categories: {selected_podcast.catergories_str}"
         )
         print(
-            f"\nMost recent ep:   {self._display_unix_time(selected_podcast_details['newestItemPubdate'], 'date&time')}"
+            f"\nMost recent ep:   {self._display_unix_time(selected_podcast.newest_item_pub, 'date&time')}"
         )
         print(
-            f"Last update time: {self._display_unix_time(selected_podcast_details['lastUpdateTime'], 'date&time')}"
+            f"Last crawl time:  {self._display_unix_time(selected_podcast.last_crawl, 'date&time')}"
         )
         print(
-            f"Last crawl time:  {self._display_unix_time(selected_podcast_details['lastCrawlTime'], 'date&time')}"
+            f"Last Parse time:  {self._display_unix_time(selected_podcast.last_parse, 'date&time')}"
         )
         print(
-            f"Last Parse time:  {self._display_unix_time(selected_podcast_details['lastParseTime'], 'date&time')}"
+            f"Last Good http:   {self._display_unix_time(selected_podcast.last_good, 'date&time')}"
         )
         print(
-            f"Last Good http:   {self._display_unix_time(selected_podcast_details['lastGoodHttpStatusTime'], 'date&time')}"
+            f"Last Update Time  {self._display_unix_time(selected_podcast.last_feed_update, 'date&time')}"
         )
-        print(
-            f"Last Update Time  {self._display_unix_time(selected_podcast_details['lastUpdateTime'], 'date&time')}"
-        )
-        print(f"Crawl errors: {selected_podcast_details['crawlErrors']}")
-        print(f"Parse errors: {selected_podcast_details['parseErrors']}")
+        print(f"Crawl errors: {selected_podcast.last_crawl}")
+        print(f"Parse errors: {selected_podcast.last_parse}")
+       
+    
+        
+        
+        
 
     # ---------------------------------------------------------
     #  MENU 6 - TRENDING PODCASTS
