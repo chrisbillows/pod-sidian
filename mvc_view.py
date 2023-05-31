@@ -1,8 +1,11 @@
+from bs4 import BeautifulSoup
+import datetime
 import os
 import platform
 import time
-import datetime
 from typing import Any, Dict
+import re
+
 from mvc_model import Podcast
 
 class Display:
@@ -36,8 +39,38 @@ class Display:
         return valid_idx_joined
     
     def _format_link(self, link: str) -> str:
-        return f'\033]8;;{link}\007{link}\033]8;;\007'
+        return f'\033]8;;{link}\007Link\033]8;;\007'
+        
+    def _format_html(self, html_string: str) -> str:
+        
+        # TODO More HTML variants we should tidy up? How many variants are possible?
+        # Could this be a task I use a GPT API call for?  Give it the desired output
+        # and let it output a best endeavours version?
+        
+        # print()
+        # print("----HTML STRING---")
+        # print(repr(html_string))
+        # print()
+        
+        soup = BeautifulSoup(html_string, "html.parser")
+        
+        for br in soup.find_all("br"):
+            br.replace_with("\n")
 
+        for p in soup.find_all("p"):
+            p.replace_with("\n" + p.get_text() + "\n")
+
+        clean_text = soup.get_text()
+        clean_text = clean_text.strip('\n')        
+        clean_text = re.sub('\n+', '\n\n', clean_text)
+        
+        # print() 
+        # print("----CLEAN STRING---")
+        # print(repr(clean_text))
+        # print()
+        
+        return clean_text
+       
     # ---------------------------------------------------------
     #                   MENU 0 - MAIN MENU
     # ---------------------------------------------------------
@@ -212,23 +245,15 @@ class Display:
             title = podcast["title"]
             shortened_title = title if len(title) <= 30 else title[:30] + "..."
             formatted_title = f"{shortened_title:<33}"
-            most_recent_ep = self._display_unix_time(
-                podcast["newestItemPubdate"], "date"
-            )
-            formatted_link = (
-                f'\033]8;;{podcast["link"]}\007{podcast["link"]}\033]8;;\007'
-            )
-            print(
-                f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {formatted_link} | {podcast['language']}"
-            )
+            most_recent_ep = self._display_unix_time(podcast["newestItemPubdate"], "date")
+            formatted_link = self._format_link(podcast["link"])
+            print(f"{idx:>2}. - {formatted_title} | {most_recent_ep} | {podcast['language']:>5} | {formatted_link}")
         print()
         print(f"Your search for {search_term} returned {valid_indexes} results")
         print()
-        print(
-            f"Enter 1 - {valid_indexes} to view more detail, (+ track and episode download options"
-        )
-        print("Enter 's' to try a new search term")
-        print("Enter 'm' to return to the main menu")
+        print(f"Enter 1 - {valid_indexes} to view more detail, to track the podcast and download episodes")
+        print("Enter 's' to try a new (s)earch term")
+        print("Enter 'm' to return to the (m)ain menu")
 
     def search_by_title_results_empty(self, search_term):
         self._clear_console()
@@ -249,52 +274,55 @@ class Display:
         print("--------SELECTED PODCAST DETAILS--------")
         print()
         print(selected_podcast.title.upper())
-        print(selected_podcast.description)
-        print(f"\nFeed_ID: {selected_podcast.feed_id}")
-        print(f"itunes_ID: {selected_podcast.itunes_id}")
-        print(f"Link: {selected_podcast.link_url}")
-        print(f"RSS: {selected_podcast.rss_url} ")
-        print(f"Episode Count: {selected_podcast.episodes_count} ")
-        print(f"Language: {selected_podcast.language} ")
-        print(
-            f"Categories: {selected_podcast.catergories_str}"
-        )
-        print(
-            f"\nMost recent ep:   {self._display_unix_time(selected_podcast.newest_item_pub, 'date&time')}"
-        )
-
-        print("----FEED HEALTH----")
-        print(
-            f"Last Update Time  {self._display_unix_time(selected_podcast.last_feed_update, 'date&time')}"
-        )
-
-        print(
-            f"Last crawl time:  {self._display_unix_time(selected_podcast.last_crawl, 'date&time')}"
-        )
-        print(
-            f"Last Parse time:  {self._display_unix_time(selected_podcast.last_parse, 'date&time')}"
-        )
-        print(
-            f"Last Good http:   {self._display_unix_time(selected_podcast.last_good, 'date&time')}"
-        )
-
-        print(f"Crawl errors: {selected_podcast.last_crawl}")
-        print(f"Parse errors: {selected_podcast.last_parse}")
         print()
-        print("-----LAST 5 EPISODES-----")
-        for episode in selected_podcast.episodes_raw_output[:10]:
+        print(self._format_html(selected_podcast.description))
+        print()
+        print(f"Feed_ID:         {selected_podcast.feed_id}")
+        print(f"itunes_ID:       {selected_podcast.itunes_id}")
+        print(f"Link:            {self._format_link(selected_podcast.link_url)}")
+        print(f"RSS:             {self._format_link(selected_podcast.rss_url)} ")
+        print(f"Episode Count:   {selected_podcast.episodes_count} ")
+        print(f"Language:        {selected_podcast.language} ")
+        print(f"Categories:      {selected_podcast.catergories_str}")
+        print()
+        print(f"Most recent ep:  {self._display_unix_time(selected_podcast.newest_item_pub, 'date&time')}")
+        print()
+        print("----FEED HEALTH----")
+        print(f"Last Update Time  {self._display_unix_time(selected_podcast.last_feed_update, 'date&time')}")
+        print(f"Last crawl time:  {self._display_unix_time(selected_podcast.last_crawl, 'date&time')}")
+        print(f"Last Parse time:  {self._display_unix_time(selected_podcast.last_parse, 'date&time')}")
+        print(f"Last Good http:   {self._display_unix_time(selected_podcast.last_good, 'date&time')}")
+        print()
+        print(f"Crawl errors: {selected_podcast.crawl_errors}")
+        print(f"Parse errors: {selected_podcast.parse_errors}")
+        print()
+        print("-----LAST 5 EPISODES SUMMARY-----")
+        for episode in selected_podcast.episodes_raw_output[:5]:
+            if episode['episode']:
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} | #{episode['episode']} - {episode['title']} | {self._format_link(episode['link'])}")
+            else:
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} - {episode['title']} | {self._format_link(episode['link'])}")
+       
+                
+    def search_by_title_last_five_episodes_detail(self, selected_podcast: Podcast) -> None:
+        """
+        Method to display the last five episodes in detail.
+        
+        Now using LAST 5 EPISODES SUMMARY directly in search_by_title_display_selected_podcast_detail
+        
+        # TODO May be useful for episode display - or maybe remove
+        """
+        print("-----LAST 5 EPISODES DETAIL-----")
+        for episode in selected_podcast.episodes_raw_output[:5]:
             print()
             if episode['episode']:
-                print(f"{self._display_unix_time(episode['datePublished'], 'date')} | #{episode['episode']} - {episode['title']}")
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} | #{episode['episode']} - {episode['title']} | {self._format_link(episode['link'])}")
             else:
-                print(f"{self._display_unix_time(episode['datePublished'], 'date')} - {episode['title']}")
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} - {episode['title']} | {self._format_link(episode['link'])}")
             print()
-            print(self._format_link(episode['link']))
-            print(episode['description'])
-            print()
+            print(self._format_html(episode["description"]))
             print()
                 
-
     # ---------------------------------------------------------
     #  MENU 6 - TRENDING PODCASTS
     # ---------------------------------------------------------

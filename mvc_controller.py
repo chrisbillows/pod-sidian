@@ -1,10 +1,9 @@
-from mvc_view import Display
-from mvc_model import Model, DatabaseManager, Podcast
 import time
-import json
 from typing import List, Dict, Any
 
 from podcast_index_api import PodcastIndexConfig, PodcastIndexService
+from mvc_model import Model, DatabaseManager, Podcast
+from mvc_view import Display
 
 
 # ---------------------------------------------------------
@@ -436,20 +435,19 @@ class SearchByTitleHandler:
         self.display.search_by_title_display_selected_podcast_detail(
             self.selected_podcast)
         
-        # TODO this displays the detail of the podcast. We need to: 
-        #           a) get the episodes 
+        # TODO now displays episodes - last 5 "summary"
+        #           a) get the episodes DONE
         #           b) give the options
         #                  which are 1) track the podcast 
         #                            2) download episodes 
         #                               (+ new search, main menu and secret quit)
-        
-        
-                    
-        # TODO episodes working - and it's getting them all.  
-        # need to handle the displaying
-        
+        # TODO Lets make download episodes like "View episode detail and download"
+        #   how to display full episodes descriptions?  could be 200? 
+               
         # TODO consider complexity of this class - way too high. But how to strip it 
         # out?  And refactor again before we actually finish some functionality?
+        
+        # NOW SUSPECT MORE OF THE FUNCTIONALITY IN CONTROLLER OUGHT TO BE IN MODEL?
         
         print()
         print("This is as far as we got! Returning to main menu.")

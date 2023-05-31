@@ -41,6 +41,8 @@ class Podcast:
         self.last_parse = feed_raw_output['lastParseTime']
         self.last_good = feed_raw_output['lastGoodHttpStatusTime']
         self.last_feed_update = feed_raw_output['lastUpdateTime']
+        self.crawl_errors = feed_raw_output["crawlErrors"]
+        self.parse_errors =feed_raw_output["parseErrors"]
        
     def _categories_to_str(self, categories): 
         cat_stringed = ", ".join(f"{k} - {v}" for k, v in categories.items())
