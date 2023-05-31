@@ -34,6 +34,9 @@ class Display:
         else:
             valid_idx_joined = f"{valid_idx_strs[0]} - {valid_idx_strs[-1]}"
         return valid_idx_joined
+    
+    def _format_link(self, link: str) -> str:
+        return f'\033]8;;{link}\007{link}\033]8;;\007'
 
     # ---------------------------------------------------------
     #                   MENU 0 - MAIN MENU
@@ -259,6 +262,12 @@ class Display:
         print(
             f"\nMost recent ep:   {self._display_unix_time(selected_podcast.newest_item_pub, 'date&time')}"
         )
+
+        print("----FEED HEALTH----")
+        print(
+            f"Last Update Time  {self._display_unix_time(selected_podcast.last_feed_update, 'date&time')}"
+        )
+
         print(
             f"Last crawl time:  {self._display_unix_time(selected_podcast.last_crawl, 'date&time')}"
         )
@@ -268,16 +277,23 @@ class Display:
         print(
             f"Last Good http:   {self._display_unix_time(selected_podcast.last_good, 'date&time')}"
         )
-        print(
-            f"Last Update Time  {self._display_unix_time(selected_podcast.last_feed_update, 'date&time')}"
-        )
+
         print(f"Crawl errors: {selected_podcast.last_crawl}")
         print(f"Parse errors: {selected_podcast.last_parse}")
-       
-    
-        
-        
-        
+        print()
+        print("-----LAST 5 EPISODES-----")
+        for episode in selected_podcast.episodes_raw_output[:10]:
+            print()
+            if episode['episode']:
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} | #{episode['episode']} - {episode['title']}")
+            else:
+                print(f"{self._display_unix_time(episode['datePublished'], 'date')} - {episode['title']}")
+            print()
+            print(self._format_link(episode['link']))
+            print(episode['description'])
+            print()
+            print()
+                
 
     # ---------------------------------------------------------
     #  MENU 6 - TRENDING PODCASTS

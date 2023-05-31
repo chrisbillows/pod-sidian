@@ -47,7 +47,6 @@ class Podcast:
         return cat_stringed
 
 
-
 class DatabaseManager:
     def __init__(self):
         self.tracked_pods_json_directory = "/Users/chrisbillows/Documents/CODE/MY_GITHUB_REPOS/pod-sidian/LIVE_DATABASE"
